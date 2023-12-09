@@ -1,4 +1,4 @@
-import { Alert, Box, Button, Card, CardActions, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Accordion, InputLabel, LinearProgress, Radio, RadioGroup, TextField, Typography, TypographyProps, AccordionDetails, IconButton, Input, InputAdornment, AccordionSummaryProps, FormGroup, FormLabel } from '@mui/material';
+import { Alert, Box, Button, Card, CardActions, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Accordion, InputLabel, LinearProgress, Radio, RadioGroup, TextField, Typography, TypographyProps, AccordionDetails, IconButton, Input, InputAdornment, AccordionSummaryProps, FormLabel, Paper, Tabs, Tab } from '@mui/material';
 import { styled } from '@mui/system';
 import axios from 'axios';
 import React, { useState, useEffect } from 'react';
@@ -10,7 +10,11 @@ import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArro
 import LabelIcon from '@mui/icons-material/Label';
 import WSEditorCommandArgumentsContent, { ClsArgDefinitionMap, CMDArg, DecodeArgs } from './WSEditorCommandArgumentsContent';
 import EditIcon from '@mui/icons-material/Edit';
+import { SwaggerItemSelector } from './WSEditorSwaggerPicker';
 
+const MiddlePadding = styled(Box)(({ theme }) => ({
+    height: '1.5vh'
+}));
 
 interface Plane {
     name: string,
@@ -866,6 +870,14 @@ interface ExampleDialogState {
     isAdd: boolean
     invalidText?: string
     updating: boolean
+    
+    exampleType: "swagger" | "request" | "record",
+
+    swaggerExamples: Example[]
+    swaggerExampleNameOptions: string[]
+    swaggerSelectedExampleName: string | null
+    swaggerSelectedExample: string | null
+    swaggerExample: string | null
 }
 
 const ExampleCommandTypography = styled(Typography)<TypographyProps>(({ theme }) => ({
@@ -879,26 +891,24 @@ class ExampleDialog extends React.Component<ExampleDialogProps, ExampleDialogSta
 
     constructor(props: ExampleDialogProps) {
         super(props);
-        const examples: Example[] = this.props.command.examples ?? [];
-        if (this.props.idx === undefined) {
-            this.state = {
-                name: "",
-                exampleCommands: ["",],
-                isAdd: true,
-                invalidText: undefined,
-                updating: false,
-            }
-        } else {
-            const example = examples[this.props.idx];
-            this.state = {
-                name: example.name,
-                exampleCommands: example.commands,
-                isAdd: false,
-                invalidText: undefined,
-                updating: false,
-            }
+        // const examples: Example[] = this.props.command.examples ?? [];
+        this.state = {
+            name: "",
+            exampleCommands: ["",],
+            isAdd: true,
+            invalidText: undefined,
+            updating: false,
+
+            exampleType: "swagger",
+            
+            swaggerExamples: [],
+            swaggerExampleNameOptions: [],
+            swaggerSelectedExampleName: null,
+            swaggerSelectedExample: null,
+            swaggerExample: null
         }
     }
+
 
     onUpdateExamples = (examples: Example[]) => {
         let { workspaceUrl, command } = this.props;
@@ -1079,8 +1089,69 @@ class ExampleDialog extends React.Component<ExampleDialogProps, ExampleDialogSta
         })
     }
 
+    
+    componentDidMount(): void {
+        this.loadSwaggerExamples();
+    }
+
+    loadSwaggerExamples = async () => {
+        try {
+            let { workspaceUrl, command } = this.props;
+
+            const leafUrl = `${workspaceUrl}/CommandTree/Nodes/aaz/` + command.names.slice(0, -1).join('/') + '/Leaves/' + command.names[command.names.length - 1] + '/GenerateExamples';
+
+            this.setState({
+                updating: true,
+            })
+            let res = await axios.post(leafUrl)
+
+            const examples: Example[] = res.data.map((v: any) => {
+                return {
+                    name: v.name,
+                    commands: v.commands
+                }
+            })
+            const exampleOptions: string[] = res.data.map((v: any) => v.name)
+            this.setState({
+                swaggerExamples: examples,
+                swaggerExampleNameOptions: exampleOptions,
+                updating: false
+            })
+            await this.onExampleSelectorUpdate(exampleOptions[0]);
+        } catch (err: any) {
+            console.error(err.response);
+            if (err.response?.data?.message) {
+                const data = err.response!.data!;
+                this.setState({
+                    updating: false,
+                    invalidText: `ResponseError: ${data.message!}`,
+                })
+            }
+        }
+    }
+   
+    onExampleSelectorUpdate = async (exampleDisplayName: string | null) => {
+        let example = this.state.swaggerExamples.find((v) => v.name === exampleDisplayName) ?? null;
+        if (this.state.swaggerSelectedExampleName !== example?.name ?? null) {
+            if (!example) {
+                return
+            }
+            this.setState({
+                name: example?.name ?? null,
+                exampleCommands: example?.commands ?? null,
+                swaggerSelectedExampleName: example?.name ?? null,
+                swaggerSelectedExample: example?.commands[0] ?? null,
+            })
+        } else {
+            this.setState({
+                swaggerSelectedExampleName: example?.name ?? null,
+                swaggerSelectedExample: example?.commands[0] ?? null
+            })
+        }
+    }
+
     render() {
-        const { name, exampleCommands, isAdd, invalidText, updating } = this.state;
+        const { name, exampleCommands, isAdd, invalidText, updating, exampleType, swaggerExamples, swaggerExampleNameOptions, swaggerSelectedExampleName, swaggerSelectedExample, swaggerExample } = this.state;
 
         const buildExampleInput = (cmd: string, idx: number) => {
             return (
@@ -1127,40 +1198,126 @@ class ExampleDialog extends React.Component<ExampleDialogProps, ExampleDialogSta
                 <DialogTitle>{isAdd ? "Add Example" : "Modify Example"}</DialogTitle>
                 <DialogContent dividers={true}>
                     {invalidText && <Alert variant="filled" severity='error'> {invalidText} </Alert>}
-                    <TextField
-                        id="name"
-                        label="Name"
-                        type="text"
-                        fullWidth
-                        variant='standard'
-                        value={name}
-                        onChange={(event: any) => {
-                            this.setState({
-                                name: event.target.value,
-                            })
-                        }}
-                        margin="normal"
-                        required
-                    />
-                    <InputLabel required sx={{ font: "inherit", mt: 1 }}>Commands</InputLabel>
-                    {exampleCommands.map(buildExampleInput)}
-                    <Box sx={{
-                        display: 'flex',
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        justifyContent: 'flex-start',
-                        ml: 1,
-                    }}>
-                        <IconButton
-                            edge="start"
-                            color="inherit"
-                            onClick={this.onAddExampleCommand}
-                            aria-label="add"
-                        >
-                            <AddCircleRoundedIcon fontSize="small" />
-                        </IconButton>
-                        <ExampleCommandTypography sx={{ flexShrink: 0 }}> One more command</ExampleCommandTypography>
-                    </Box>
+                    <InputLabel required sx={{ font: "inherit", mt: 1 }}>Source</InputLabel>
+                    <Paper square={false} sx={{ mt: 1 }} >
+                        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                            <Tabs
+                                value={exampleType}
+                                textColor="secondary"
+                                indicatorColor="secondary"
+                                onChange={(event: any, newValue: any) => {
+                                    this.setState({
+                                        exampleType: newValue,
+                                    })
+                                }}>
+                                <Tab label="By swagger" value="swagger" />
+                                <Tab label="By request" value="request" />
+                                <Tab label="By record" value="record" />
+                            </Tabs>
+                        </Box>
+                        {exampleType === "swagger" && <Box sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'stretch',
+                            justifyContent: 'flex-start',
+                            pt: 2,
+                            pl: 2,
+                            pr: 2,
+                            pb: 2,
+                        }}>
+                            <SwaggerItemSelector
+                                name="Name"
+                                commonPrefix={""}
+                                options={this.state.swaggerExampleNameOptions}
+                                value={swaggerSelectedExampleName}
+                                onValueUpdate={this.onExampleSelectorUpdate}
+                            />
+                            <MiddlePadding />
+
+                            <InputLabel required sx={{ font: "inherit", mt: 1 }}>Commands</InputLabel>
+                            <Box sx={{
+                                display: 'flex',
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                justifyContent: 'flex-start',
+                                ml: 1,
+                            }}>
+                                <IconButton
+                                    edge="start"
+                                    color="inherit"
+                                    aria-label="remove"
+                                >
+                                    <DoDisturbOnRoundedIcon fontSize="small" />
+                                </IconButton>
+                                <Input
+                                    id="SwaggerExample"
+                                    // label="Swagger Example"
+                                    type="text"
+                                    // InputLabelProps={{
+                                    //     shrink: true,
+                                    // }}
+                                    fullWidth
+                                    // variant='standard'
+                                    multiline
+                                    // placeholder="Swagger Example"
+                                    sx={{ flexGrow: 1 }}
+                                    autoComplete={swaggerSelectedExample!}
+                                    value={exampleCommands[0]}
+                                    onChange={(event: any) => {
+                                        this.setState({
+                                            exampleCommands: [event.target.value],
+                                        })
+                                    }}
+                                    margin='dense'
+                                    required
+                                    startAdornment={
+                                        <InputAdornment position="start">
+                                            <ExampleCommandTypography>{commandPrefix}</ExampleCommandTypography>
+                                        </InputAdornment>
+                                    }
+                                />
+                            </Box>
+                                    <Box sx={{
+                                display: 'flex',
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                justifyContent: 'flex-start',
+                                ml: 1,
+                            }}>
+                                <IconButton
+                                    edge="start"
+                                    color="inherit"
+                                    onClick={this.onAddExampleCommand}
+                                    aria-label="add"
+                                >
+                                    <AddCircleRoundedIcon fontSize="small" />
+                                </IconButton>
+                                <ExampleCommandTypography sx={{ flexShrink: 0 }}> One more command</ExampleCommandTypography>
+                            </Box>
+                        </Box>}
+                        {exampleType === "request" && <Box sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'stretch',
+                            justifyContent: 'flex-start',
+                            pt: 2,
+                            pl: 2,
+                            pr: 2,
+                            pb: 2,
+                        }}>
+                        </Box>}
+                        {exampleType === "record" && <Box sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'stretch',
+                            justifyContent: 'flex-start',
+                            pt: 2,
+                            pl: 2,
+                            pr: 2,
+                            pb: 2,
+                        }}>
+                        </Box>}
+                    </Paper>
                 </DialogContent>
                 <DialogActions>
                     {updating &&
@@ -1174,7 +1331,7 @@ class ExampleDialog extends React.Component<ExampleDialogProps, ExampleDialogSta
                             <Button onClick={this.handleDelete}>Delete</Button>
                             <Button onClick={this.handleModify}>Save</Button>
                         </React.Fragment>}
-                        {isAdd && <Button onClick={this.handleAddBySwagger}>Add</Button>}
+                        {isAdd && <Button onClick={this.handleAdd}>Add</Button>}
                     </React.Fragment>}
                 </DialogActions>
             </Dialog>
