@@ -34,3 +34,9 @@ The definition of [200/201 Responses](https://github.com/Azure/azure-rest-api-sp
 ## Why my codegen V2 generated cmds' help message not inherited from my "summary" message from its swagger file?
 
 Codegen v2 uses "description" of swagger definition for cmd's 'help' message, not 'summary'
+
+## Long running operation(LRO) command execute failed with error: 'None' type object is not callable.
+
+!['None' type object is not callable](../assets/images/none_type_not_callable.png)
+
+This issue is caused by the miss match between Swagger(OpenAPI Spec) definition and LRO behavior. It seems the final response body from LRO is not empty, but the `x-ms-long-running-operation-options.final-state-schema` field in swagger is not defined. You can reference this swagger doc https://github.com/Azure/autorest/tree/main/docs/extensions#x-ms-long-running-operation-options For details. BTW, when you run the cli command, you can add `--debug` argument to display the request logs.
