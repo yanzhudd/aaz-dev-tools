@@ -183,8 +183,12 @@ class ResourceProvider:
     def _parse_resources_in_file(self, file_path):
         resources = []
 
-        with open(file_path, 'r', encoding='utf-8') as f:
-            body = json.load(f)
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                body = json.load(f)
+        except Exception as err:
+            logger.error(f'InvalidSwaggerFile: {self} : ParseJsonFailed: {file_path} : {err}')
+            return resources
 
         # check swagger version
         swagger_version = body.get('swagger', None)

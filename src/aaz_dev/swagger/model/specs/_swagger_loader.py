@@ -21,8 +21,12 @@ class SwaggerLoader:
         if loaded is not None:
             return loaded
 
-        with open(file_path, 'r', encoding='utf-8') as f:
-            body = json.load(f)
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                body = json.load(f)
+        except Exception as err:
+            logger.error(f'InvalidSwaggerFile: ParseJsonFailed: {file_path} : {err}')
+            raise
 
         if 'example' in file_path.lower():
             loaded = body
