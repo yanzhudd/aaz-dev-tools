@@ -251,6 +251,7 @@ class CMDBuilder:
                 model._type = f"@{name}"
             else:
                 model = self(schema.ref_instance, **kwargs)
+                model.read_only = self.read_only
             return model
 
         if name not in self.cls_definitions:
@@ -258,6 +259,7 @@ class CMDBuilder:
                 # register in cls_definitions first in case of loop reference below
                 self.cls_definitions[name] = {"count": 1}
                 model = self(schema.ref_instance, **kwargs)
+                model.read_only = self.read_only
                 if isinstance(model, (CMDObjectSchemaBase, CMDArraySchemaBase)):
                     # Important: only support object and array schema to defined as cls
                     # when self.cls_definitions[name]['count'] > 1, the loop reference exist
@@ -266,6 +268,7 @@ class CMDBuilder:
                     del self.cls_definitions[name]
             else:
                 model = self(schema.ref_instance, **kwargs)
+                model.read_only = self.read_only
         else:
             if support_cls_schema:
                 self.cls_definitions[name]['count'] += 1
@@ -291,6 +294,7 @@ class CMDBuilder:
                         value=name
                     )
                 model = self(schema.ref_instance, **kwargs)
+                model.read_only = self.read_only
         return model
 
     def get_cls_definition_model(self, model):

@@ -90,6 +90,9 @@ class ReferenceSchema(Model, Linkable):
             self.ref_instance.link(swagger_loader, *instance_traces)
         if self.ref_instance.x_ms_azure_resource:
             self.x_ms_azure_resource = True
+        if self.ref_instance.read_only:
+            # inherit read only from $ref
+            self.read_only = True
 
     def to_cmd(self, builder, support_cls_schema=False, **kwargs):
         model = builder.register_cls_definition(self, support_cls_schema=support_cls_schema, **kwargs)
@@ -295,6 +298,8 @@ class Schema(Model, Linkable):
                 self.ref_instance.link(swagger_loader, *instance_traces)
             if self.ref_instance.x_ms_azure_resource:
                 self.x_ms_azure_resource = True
+            if self.ref_instance.read_only:
+                self.read_only = True
 
         if self.items is not None:
             if isinstance(self.items, list):
