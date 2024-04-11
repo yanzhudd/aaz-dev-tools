@@ -24,6 +24,7 @@ from command.model.configuration import CMDSchemaDefault, \
     CMDClsSchema, CMDClsSchemaBase, \
     CMDHttpResponseJsonBody
 
+from swagger.model.specs._utils import operation_id_separate
 from swagger.utils import exceptions
 from .fields import MutabilityEnum
 from .response import Response
@@ -588,13 +589,19 @@ class CMDBuilder:
 
         success_codes = reduce(lambda x, y: x | y, [codes for codes, _ in success_responses])
         if schema.x_ms_long_running_operation and not success_codes & {200, 201}:
-            lro_response = Response()
-            lro_response.description = "Response schema for long-running operation."
-
             if lro_schema := schema.x_ms_lro_final_state_schema:
-                lro_response.schema = lro_schema  # use `final-state-schema` as response
+                lro_response = Response()
+                lro_response.description = "Response schema for long-running operation."
+                lro_response.schema = lro_schema
 
-            success_responses.append(({200, 201}, lro_response))
+                success_responses.append(({200, 201}, lro_response))  # use `final-state-schema` as response
+
+            elif operation_id_separate(schema.operation_id)[-1][0] == "delete":
+                lro_response = Response()
+                lro_response.description = "Response schema for long-running operation."
+                success_responses.append(({200, 201}, lro_response))
+            else:
+                logger.warning(f"No response schema for long-running-operation: {schema.operation_id}.")
 
         # # default response
         # if 'default' not in error_responses and len(error_responses) == 1:
