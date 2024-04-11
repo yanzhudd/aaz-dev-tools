@@ -40,3 +40,6 @@ Codegen v2 uses "description" of swagger definition for cmd's 'help' message, no
 !['None' type object is not callable](../assets/images/none_type_not_callable.png)
 
 This issue is caused by the miss match between Swagger(OpenAPI Spec) definition and LRO behavior. It seems the final response body from LRO is not empty, but the `x-ms-long-running-operation-options.final-state-schema` field in swagger is not defined. You can reference this swagger doc https://github.com/Azure/autorest/tree/main/docs/extensions#x-ms-long-running-operation-options For details. BTW, when you run the cli command, you can add `--debug` argument to display the request logs.
+
+## Does AAZDev support pagination?
+Yes, codegen naturally supports pagination when there is `x-ms-pageable` defined in swagger, e.g., https://learn.microsoft.com/en-us/cli/azure/network?view=azure-cli-latest#az-network-list-usages-optional-parameters.
