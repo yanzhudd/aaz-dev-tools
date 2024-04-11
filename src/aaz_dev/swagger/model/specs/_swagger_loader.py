@@ -46,6 +46,11 @@ class SwaggerLoader:
                     _patch_dict(item)
 
         def _patch_dict(dct):
+            # add `additionalProperties: true` to empty object
+            if "type" in dct and dct["type"] == "object":
+                if not {*dct.keys()} - {"type", "description"}:
+                    dct["additionalProperties"] = True
+
             for key in [*dct.keys()]:
                 if key == "additionalProperties" and dct[key] == {}:
                     # replace `additionalProperties: {}` by `additionalProperties: true`
