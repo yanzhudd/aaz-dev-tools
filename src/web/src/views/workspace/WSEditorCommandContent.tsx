@@ -1172,12 +1172,12 @@ class ExampleDialog extends React.Component<ExampleDialogProps, ExampleDialogSta
                             <Button variant='contained' size="large" color='secondary' sx={{ fontSize: '20px', padding: '10px 20px' }} onClick={() => {this.loadSwaggerExamples()}}>
                                 <Typography variant='body2'>By OpenAPI Specification</Typography>
                             </Button>
-                            <Button variant='outlined' size="large" color='secondary' sx={{ fontSize: '20px', padding: '10px 20px' }} disabled>
+                            {/* <Button variant='outlined' size="large" color='secondary' sx={{ fontSize: '20px', padding: '10px 20px' }} disabled>
                                 <Typography variant='body2'>By Testing Record</Typography>
                             </Button>
                             <Button variant='outlined' size="large" color='secondary' sx={{ fontSize: '20px', padding: '10px 20px' }} disabled>
                                 <Typography variant='body2'>By Request Payload</Typography>
-                            </Button>
+                            </Button> */}
                         </Stack>
                     }
                     {(!isAdd || source != undefined) &&
