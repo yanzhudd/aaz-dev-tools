@@ -1,6 +1,6 @@
 # Microsoft Atomic Azure CLI Dev Tools
 
-The *aaz-dev* tool is designed to generate atomic Azure CLI commands from OpenAPI specifications. For more information, please refer to [document](https://azure.github.io/aaz-dev-tools/) and [video](https://msit.microsoftstream.com/video/d8c50840-98dc-a27a-806a-f1ed2daa33a9).
+The *aaz-dev* tool is designed to generate atomic Azure CLI commands from OpenAPI specifications. For more information, please refer to [document](https://azure.github.io/aaz-dev-tools/) and [video](https://microsoft.sharepoint.com/teams/AzureCLITools237/_layouts/15/embed.aspx?UniqueId=97905452-69c2-4f7c-8c6b-b411c7fd0013&embed=%7B%22ust%22%3Atrue%2C%22hv%22%3A%22CopyEmbedCode%22%7D&referrer=StreamWebApp&referrerScenario=EmbedDialog.Create).
 
 ## Installation
 Currently, we can install it with a [.whl file](https://github.com/Azure/aaz-dev-tools/releases). Later on, we'll publish it to PyPI to support *pip install* way of installation.
