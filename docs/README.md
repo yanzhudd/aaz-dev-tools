@@ -62,7 +62,7 @@ The degree of coupling between commands relay on SDK can be seen from the follow
 ![BumpUpNetworkSDK](assets/images/az_cli_bump_up_network_sdk.png)
 The SDK packages a batch of APIs, and when one API has new change and is released in a new SDK version,
  we have to test and update the commands that use the whole batch of APIs in SDK instead of the one API we care about.
- Each time we bump up a SDK, hundreds of tests need to rerun in live and their recording files need to be updated, we also need to fix other commands that are broken by new SDK.
+ Each time we bump up an SDK, hundreds of tests need to rerun in live and their recording files need to be updated, we also need to fix other commands that are broken by new SDK.
  It wasted a lot of time and created a lot of hidden problems. By applying Atomic CLI commands, we can avoid them.
 
 ## Overview
@@ -73,7 +73,7 @@ AAZDev Tool consists of 4 parts:
 - API Translators:
   They are responsible for translating the API specification into a command model. We've implemented the swagger 2.0 translator which can support to translate the API specs in [azure-rest-api-specs](https://github.com/Azure/azure-rest-api-specs) repo and [azure-rest-api-specs-pr](https://github.com/Azure/azure-rest-api-specs-pr) repo.
 - Model Editors:
-  They are used to edit command models. Currently _Workspace Editor_ is implemented. More details are introduced in _Workspace_ paragraph.
+  They are used to edit command models. Currently, _Workspace Editor_ is implemented. More details are introduced in _Workspace_ paragraph.
 - Command Models:
   The command models generated from translators and modified in editors will be persisted in a repo called AAZ. The persistence of models can be useful in many ways. More details are introduced in _AAZ Repo_ paragraph.
 - Code Generators:
@@ -89,9 +89,10 @@ A Resource can be translated into a single command or multiple commands under a 
 
 Swagger V2 translator uses the `valid part` of url to generate the group part of a command.
 
-The `valid part` of url is the url suffix starts by it's Resource Provider with parameter placeholders replaced by `{}` and locations segment removed.
+The `valid part` of url is the url suffix starts by its Resource Provider with parameter placeholders replaced by `{}` and locations segment removed.
 
 The table below show some examples with valid part highlighted.
+
 | Resource Provider | Resource Url | valid part of url |
 | ---- | ---- | ---- |
 | Microsoft.EdgeOrder | /subscriptions/{subscriptionId}/providers/**Microsoft.EdgeOrder/addresses** | Microsoft.EdgeOrder/addresses |
@@ -108,7 +109,7 @@ Each segments of valid part corresponds to a group name. The parameter segments 
 
 Swagger V2 translator use the HTTP methods to generate the operation part of a command.
 
-The table below show the mapping relation ship between the common command operation name and the resource HTTP methods.
+The table below show the mapping relationship between the common command operation name and the resource HTTP methods.
 
 | Common Command Operation Name | Resource HTTP Method |
 | ---- | ---- |
@@ -119,7 +120,7 @@ The table below show the mapping relation ship between the common command operat
 | update (by generic) | GET + PUT |
 | update (by patch) | PATCH |
 
-For example if a resource has following properties:
+For example if a resource has the following properties:
 
 ```yaml
 resource_id: '/subscriptions/{}/resourcegroups/{}/providers/microsoft.edgeorder/addresses/{}'
@@ -160,7 +161,7 @@ methods:
     - GET
 ```
 
-Translators will automatic merge them into one `list` commands if their response schemas are the same. If their response schemas are different, a special suffix will be added after `list` operation name to distinguish two commands. And the name can be renamed in editor.
+Translators will automatically merge them into one `list` commands if their response schemas are the same. If their response schemas are different, a special suffix will be added after `list` operation name to distinguish two commands. And the name can be renamed in editor.
 
 The `POST` method is special. If a resource has `POST` method only and the last segment of valid part is not a parameter segment, that segment will be used as operation name, else a temporary name will be generated, which can be renamed in editor later.
 
@@ -169,7 +170,7 @@ The `POST` method is special. If a resource has `POST` method only and the last 
 Before developers finish customizing the command models and export them in AAZ repo for persistence, the draft is saved in a workspace.
 Workspaces are like containers, they are isolated so that changes in one do not affect the others. Therefore, developers can create as many workspaces as needed for different purposes. 
 
-It's possible to add resources from different resource providers, but they should be in the same plane. Currently we only support Management plane.
+It's possible to add resources from different resource providers, but they should be in the same plane. Currently, we only support Management plane.
 Another note is that a workspace don't allow to add a resource multiple times in different versions. For example, if virtual network resource('/subscriptions/{}/resourcegroups/{}/providers/microsoft.network/virtualnetworks/{}') of version 2021-05-01 is added in a workspace, it's not allowed to add other versions of this resource in this workspace.
 
 Please jump to [Workspace Editor](pages/usage/workspace_editor_usage.md) for more details.
@@ -178,7 +179,7 @@ Please jump to [Workspace Editor](pages/usage/workspace_editor_usage.md) for mor
 
 The name __AAZ__ comes from the abbreviation of Atomic Azure. This repo is to maintain Atomic Azure Cli command models. You can access this repo by [link](https://github.com/Azure/aaz/tree/main).
 
-There a two folders in the root of AAZ:
+There are two folders in the root of AAZ:
 
 - Commands:
   This folder provides an index of command models available in AAZ. They are organized in a command tree. 
@@ -214,7 +215,7 @@ The diagram below show the structure of command configuration file.
 
 The commands in a configuration file organized in hierarchy.
 
-There are three sections in every commands:
+There are three sections in every command:
 
 - Argument Section:
   The arguments defined in argument section and grouped by Argument Group.
