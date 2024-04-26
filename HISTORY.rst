@@ -3,6 +3,14 @@
 Release History
 ===============
 
+2.6.2
+++++++
+* Refine documentation (#345, #349, #355, #356)
+* Add response schema for lro delete operation (#350)
+* Support empty free-form object (#348)
+* Display ParseJsonFailed error logs (#347)
+* Fix readOnly parsing problem in Swagger (#346)
+
 2.6.1
 ++++++
 * Adapt new polices for LRO operation (#333)
