@@ -67,6 +67,19 @@ def get_prop(env, data):
         return f'.{data}'
 
 
+@pass_environment
+def get_scope(env, data):
+    def convert(data):
+        if data in _PYTHON_BUILD_IN_KEYWORDS:
+            return f"{data}_"
+
+        return data
+
+    assert isinstance(data, str)
+
+    return ".".join(convert(i) for i in data.split("."))
+
+
 custom_filters = {
     "camel_case": camel_case,
     "snake_case": snake_case,
@@ -74,5 +87,6 @@ custom_filters = {
     "is_preview": is_preview,
     "is_stable": is_stable,
     "constant_convert": constant_convert,
-    "get_prop": get_prop
+    "get_prop": get_prop,
+    "get_scope": get_scope
 }
