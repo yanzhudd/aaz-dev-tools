@@ -103,10 +103,10 @@ class {{ leaf.cls_name }}(
         # define Arg Group "{{ arg_group.name }}"
         {%- for scope, scope_define, arguments in arg_group.iter_scopes() %}
 
-        {{ scope }} = {{ scope_define }}
+        {{ scope|get_scope }} = {{ scope_define|get_scope }}
 
         {%- for arg_name, arg_type, arg_kwargs, cls_builder_name in arguments %}
-        {{ scope }}.{{ arg_name }} = {{ arg_type }}(
+        {{ scope|get_scope }}.{{ arg_name|get_scope }} = {{ arg_type }}(
         {%- if not arg_kwargs|length %})
         {%- else %}
             {%- for key, value in arg_kwargs.items() %}
@@ -129,7 +129,7 @@ class {{ leaf.cls_name }}(
         )
         {%- endif %}
         {%- if cls_builder_name is not none %}
-        cls.{{ cls_builder_name }}({{ scope }}.{{ arg_name }})
+        cls.{{ cls_builder_name }}({{ scope|get_scope }}.{{ arg_name|get_scope }})
         {%- endif %}
 
         {%- endfor %}
@@ -171,10 +171,10 @@ class {{ leaf.cls_name }}(
 
         {%- for scope, scope_define, arguments in arg_cls.iter_scopes() %}
 
-        {{ scope }} = {{ scope_define }}
+        {{ scope|get_scope }} = {{ scope_define|get_scope }}
 
         {%- for arg_name, arg_type, arg_kwargs, cls_builder_name in arguments %}
-        {{ scope }}.{{ arg_name }} = {{ arg_type }}(
+        {{ scope|get_scope }}.{{ arg_name|get_scope }} = {{ arg_type }}(
         {%- if not arg_kwargs|length %})
         {%- else %}
             {%- for key, value in arg_kwargs.items() %}
@@ -191,7 +191,7 @@ class {{ leaf.cls_name }}(
         )
         {%- endif %}
         {%- if cls_builder_name is not none %}
-        cls.{{ cls_builder_name }}({{ scope }}.{{ arg_name }})
+        cls.{{ cls_builder_name }}({{ scope|get_scope }}.{{ arg_name|get_scope }})
         {%- endif %}
         {%- endfor %}
 
@@ -293,7 +293,7 @@ class {{ leaf.cls_name }}(
             {%- for line in idx_lines %}
             {{line}}
             {%- endfor %}
-            {{ scope }} = {{ scope_define }}
+            {{ scope|get_scope }} = {{ scope_define|get_scope }}
 
             {%- if filter_builder is not none %}
             filters = {{ filter_builder }}
@@ -327,7 +327,7 @@ class {{ leaf.cls_name }}(
             {%- for line in idx_lines %}
             {{line}}
             {%- endfor %}
-            {{ scope }} = {{ scope_define }}
+            {{ scope|get_scope }} = {{ scope_define|get_scope }}
 
             {%- if filter_builder is not none %}
             filters = {{ filter_builder }}
@@ -510,8 +510,8 @@ class {{ leaf.cls_name }}(
 
             {%- if scope_define is not none %}
 
-            {{ scope }} = {{ op.content.BUILDER_NAME }}.get({{ scope_define|constant_convert }})
-            if {{ scope }} is not None:
+            {{ scope|get_scope }} = {{ op.content.BUILDER_NAME }}.get({{ scope_define|get_scope|constant_convert }})
+            if {{ scope|get_scope }} is not None:
             {%- endif %}
 
             {%- for prop_name, prop_type, is_const, const_value, arg_key, prop_type_kwargs, cls_builder_name in props %}
@@ -519,18 +519,18 @@ class {{ leaf.cls_name }}(
             {%- if cls_builder_name is not none %}{{ leaf.helper_cls_name }}.{{ cls_builder_name }}({% endif %}
             {%- if prop_name != '[]' and prop_name != '{}' -%}
             {%- if is_const -%}
-            {{ scope }}.set_const({{ prop_name|constant_convert }}, {{ const_value|constant_convert }}, {{ prop_type }}
+            {{ scope|get_scope }}.set_const({{ prop_name|constant_convert }}, {{ const_value|constant_convert }}, {{ prop_type }}
                 {%- if arg_key is not none %}, {{ arg_key|constant_convert }}{% endif %}
                 {%- if prop_type_kwargs is not none and prop_type_kwargs|length %}, typ_kwargs={{ prop_type_kwargs|constant_convert }}{% endif %})
             {%- else -%}
-            {{ scope }}.set_prop({{ prop_name|constant_convert }}, {{ prop_type }}
+            {{ scope|get_scope }}.set_prop({{ prop_name|constant_convert }}, {{ prop_type }}
                 {%- if arg_key is not none %}, {{ arg_key|constant_convert }}{% endif %}
                 {%- if prop_type_kwargs is not none and prop_type_kwargs|length %}, typ_kwargs={{ prop_type_kwargs|constant_convert }}{% endif %})
             {%- endif %}
             {%- elif prop_name == '{}' and prop_type is none -%}
-            {{ scope }}.set_anytype_elements({%- if arg_key is not none %}{{ arg_key|constant_convert }}{% endif %})
+            {{ scope|get_scope }}.set_anytype_elements({%- if arg_key is not none %}{{ arg_key|constant_convert }}{% endif %})
             {%- else -%}
-            {{ scope }}.set_elements({{ prop_type }}
+            {{ scope|get_scope }}.set_elements({{ prop_type }}
                 {%- if arg_key is not none %}, {{ arg_key|constant_convert }}{% endif %}
                 {%- if prop_type_kwargs is not none and prop_type_kwargs|length %}, typ_kwargs={{ prop_type_kwargs|constant_convert }}{% endif %})
             {%- endif %}
@@ -539,7 +539,7 @@ class {{ leaf.cls_name }}(
 
             {%- for disc_name, disc_value in discriminators %}
             {% if scope_define is not none %}{{ "    " }}{% endif -%}
-            {{ scope }}.discriminate_by({{ disc_name|constant_convert }}, {{ disc_value|constant_convert }})
+            {{ scope|get_scope }}.discriminate_by({{ disc_name|constant_convert }}, {{ disc_value|constant_convert }})
             {%- endfor %}
 
             {%- endfor %}
@@ -601,10 +601,10 @@ class {{ leaf.cls_name }}(
 
             {%- for scope, scope_define, props in response.schema.iter_scopes() %}
 
-            {{ scope }} = {{ scope_define }}
+            {{ scope|get_scope }} = {{ scope_define|get_scope }}
 
             {%- for prop_name, prop_type, prop_kwargs, cls_builder_name in props %}
-            {{ scope }}{{ prop_name|get_prop }} = {{ prop_type }}(
+            {{ scope|get_scope }}{{ prop_name|get_prop }} = {{ prop_type }}(
             {%- if not prop_kwargs|length %})
             {%- else %}
                 {%- for key, value in prop_kwargs.items() %}
@@ -613,7 +613,7 @@ class {{ leaf.cls_name }}(
             )
             {%- endif %}
             {%- if cls_builder_name is not none %}
-            {{ leaf.helper_cls_name }}.{{ cls_builder_name }}({{ scope }}{{ prop_name|get_prop }})
+            {{ leaf.helper_cls_name }}.{{ cls_builder_name }}({{ scope|get_scope }}{{ prop_name|get_prop }})
             {%- endif %}
             {%- endfor %}
 
@@ -672,8 +672,8 @@ class {{ leaf.cls_name }}(
 
             {%- if scope_define is not none %}
 
-            {{ scope }} = {{ op.BUILDER_NAME }}.get({{ scope_define|constant_convert }})
-            if {{ scope }} is not None:
+            {{ scope|get_scope }} = {{ op.BUILDER_NAME }}.get({{ scope_define|get_scope|constant_convert }})
+            if {{ scope|get_scope }} is not None:
             {%- endif %}
 
             {%- for prop_name, prop_type, is_const, const_value, arg_key, prop_type_kwargs, cls_builder_name in props %}
@@ -681,18 +681,18 @@ class {{ leaf.cls_name }}(
             {%- if cls_builder_name is not none %}{{ leaf.helper_cls_name }}.{{ cls_builder_name }}({% endif %}
             {%- if prop_name != '[]' and prop_name != '{}' -%}
             {%- if is_const -%}
-            {{ scope }}.set_const({{ prop_name|constant_convert }}, {{ const_value|constant_convert }}, {{ prop_type }}
+            {{ scope|get_scope }}.set_const({{ prop_name|constant_convert }}, {{ const_value|constant_convert }}, {{ prop_type }}
                 {%- if arg_key is not none %}, {{ arg_key|constant_convert }}{% endif %}
                 {%- if prop_type_kwargs is not none and prop_type_kwargs|length %}, typ_kwargs={{ prop_type_kwargs|constant_convert }}{% endif %})
             {%- else -%}
-            {{ scope }}.set_prop({{ prop_name|constant_convert }}, {{ prop_type }}
+            {{ scope|get_scope }}.set_prop({{ prop_name|constant_convert }}, {{ prop_type }}
                 {%- if arg_key is not none %}, {{ arg_key|constant_convert }}{% endif %}
                 {%- if prop_type_kwargs is not none and prop_type_kwargs|length %}, typ_kwargs={{ prop_type_kwargs|constant_convert }}{% endif %})
             {%- endif %}
             {%- elif prop_name == '{}' and prop_type is none -%}
-            {{ scope }}.set_anytype_elements({%- if arg_key is not none %}{{ arg_key|constant_convert }}{% endif %})
+            {{ scope|get_scope }}.set_anytype_elements({%- if arg_key is not none %}{{ arg_key|constant_convert }}{% endif %})
             {%- else -%}
-            {{ scope }}.set_elements({{ prop_type }}
+            {{ scope|get_scope }}.set_elements({{ prop_type }}
                 {%- if arg_key is not none %}, {{ arg_key|constant_convert }}{% endif %}
                 {%- if prop_type_kwargs is not none and prop_type_kwargs|length %}, typ_kwargs={{ prop_type_kwargs|constant_convert }}{% endif %})
             {%- endif %}
@@ -701,7 +701,7 @@ class {{ leaf.cls_name }}(
 
             {%- for disc_name, disc_value in discriminators %}
             {% if scope_define is not none %}{{ "    " }}{% endif -%}
-            {{ scope }}.discriminate_by({{ disc_name|constant_convert }}, {{ disc_value|constant_convert }})
+            {{ scope|get_scope }}.discriminate_by({{ disc_name|constant_convert }}, {{ disc_value|constant_convert }})
             {%- endfor %}
 
             {%- endfor %}
@@ -750,8 +750,8 @@ class {{ leaf.helper_cls_name }}:
 
         {%- if scope_define is not none %}
 
-        {{ scope }} = {{ update_cls.BUILDER_NAME }}.get({{ scope_define|constant_convert }})
-        if {{ scope }} is not None:
+        {{ scope|get_scope }} = {{ update_cls.BUILDER_NAME }}.get({{ scope_define|get_scope|constant_convert }})
+        if {{ scope|get_scope }} is not None:
         {%- endif %}
 
         {%- for prop_name, prop_type, is_const, const_value, arg_key, prop_type_kwargs, cls_builder_name in props %}
@@ -759,18 +759,18 @@ class {{ leaf.helper_cls_name }}:
         {%- if cls_builder_name is not none %}cls.{{ cls_builder_name }}({% endif %}
         {%- if prop_name != '[]' and prop_name != '{}' -%}
         {%- if is_const -%}
-        {{ scope }}.set_const({{ prop_name|constant_convert }}, {{ const_value|constant_convert }}, {{ prop_type }}
+        {{ scope|get_scope }}.set_const({{ prop_name|constant_convert }}, {{ const_value|constant_convert }}, {{ prop_type }}
             {%- if arg_key is not none %}, {{ arg_key|constant_convert }}{% endif %}
             {%- if prop_type_kwargs is not none and prop_type_kwargs|length %}, typ_kwargs={{ prop_type_kwargs|constant_convert }}{% endif %})
         {%- else -%}
-        {{ scope }}.set_prop({{ prop_name|constant_convert }}, {{ prop_type }}
+        {{ scope|get_scope }}.set_prop({{ prop_name|constant_convert }}, {{ prop_type }}
             {%- if arg_key is not none %}, {{ arg_key|constant_convert }}{% endif %}
             {%- if prop_type_kwargs is not none and prop_type_kwargs|length %}, typ_kwargs={{ prop_type_kwargs|constant_convert }}{% endif %})
         {%- endif %}
         {%- elif prop_name == '{}' and prop_type is none -%}
-        {{ scope }}.set_anytype_elements({%- if arg_key is not none %}{{ arg_key|constant_convert }}{% endif %})
+        {{ scope|get_scope }}.set_anytype_elements({%- if arg_key is not none %}{{ arg_key|constant_convert }}{% endif %})
         {%- else -%}
-        {{ scope }}.set_elements({{ prop_type }}
+        {{ scope|get_scope }}.set_elements({{ prop_type }}
             {%- if arg_key is not none %}, {{ arg_key|constant_convert }}{% endif %}
             {%- if prop_type_kwargs is not none and prop_type_kwargs|length %}, typ_kwargs={{ prop_type_kwargs|constant_convert }}{% endif %})
         {%- endif %}
@@ -779,7 +779,7 @@ class {{ leaf.helper_cls_name }}:
 
         {%- for disc_name, disc_value in discriminators %}
         {% if scope_define is not none %}{{ "    " }}{% endif -%}
-        {{ scope }}.discriminate_by({{ disc_name|constant_convert }}, {{ disc_value|constant_convert }})
+        {{ scope|get_scope }}.discriminate_by({{ disc_name|constant_convert }}, {{ disc_value|constant_convert }})
         {%- endfor %}
 
         {%- endfor %}
@@ -820,10 +820,10 @@ class {{ leaf.helper_cls_name }}:
 
         {%- for scope, scope_define, props in resp_cls.iter_scopes() %}
 
-        {{ scope }} = {{ scope_define }}
+        {{ scope|get_scope }} = {{ scope_define|get_scope }}
 
         {%- for prop_name, prop_type, prop_kwargs, cls_builder_name in props %}
-        {{ scope }}{{ prop_name|get_prop }} = {{ prop_type }}(
+        {{ scope|get_scope }}{{ prop_name|get_prop }} = {{ prop_type }}(
         {%- if not prop_kwargs|length %})
         {%- else %}
             {%- for key, value in prop_kwargs.items() %}
@@ -832,7 +832,7 @@ class {{ leaf.helper_cls_name }}:
         )
         {%- endif %}
         {%- if cls_builder_name is not none %}
-        cls.{{ cls_builder_name }}({{ scope }}{{ prop_name|get_prop }})
+        cls.{{ cls_builder_name }}({{ scope|get_scope }}{{ prop_name|get_prop }})
         {%- endif %}
         {%- endfor %}
 
