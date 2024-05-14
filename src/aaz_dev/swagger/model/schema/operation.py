@@ -1,3 +1,4 @@
+import logging
 from urllib.parse import urljoin
 
 from schematics.models import Model
@@ -7,8 +8,9 @@ from command.model.configuration import CMDHttpOperation, CMDHttpAction, CMDHttp
     CMDHttpRequestQuery, CMDHttpRequestHeader, CMDHttpRequestJsonBody, CMDRequestJson, CMDHttpOperationLongRunning
 from swagger.utils import exceptions
 from swagger.utils.tools import swagger_resource_path_to_resource_id_template
+from .example_item import XmsExamplesField
 from .external_documentation import ExternalDocumentation
-from .fields import MimeField, XmsRequestIdField, XmsExamplesField, SecurityRequirementField, XPublishField, \
+from .fields import MimeField, XmsRequestIdField, SecurityRequirementField, XPublishField, \
     XSfCodeGenField, XmsClientNameField
 from .parameter import ParameterField, PathParameter, QueryParameter, HeaderParameter, BodyParameter,\
     FormDataParameter, ParameterBase
@@ -18,6 +20,8 @@ from .schema import ReferenceSchema
 from .x_ms_long_running_operation import XmsLongRunningOperationField, XmsLongRunningOperationOptionsField
 from .x_ms_odata import XmsODataField
 from .x_ms_pageable import XmsPageableField
+
+logger = logging.getLogger('backend')
 
 
 class Operation(Model, Linkable):
@@ -53,7 +57,7 @@ class Operation(Model, Linkable):
 
     x_ms_odata = XmsODataField()  # TODO: # indicates the operation includes one or more OData query parameters.
     x_ms_request_id = XmsRequestIdField()
-    x_ms_examples = XmsExamplesField()  # TODO:
+    x_ms_examples = XmsExamplesField()
 
     # specific properties
     _x_publish = XPublishField()  # only used in Maps Data Plane
@@ -132,6 +136,13 @@ class Operation(Model, Linkable):
                 swagger_loader,
                 *self.traces, "x_ms_long_running_operation_options", "final_state_schema"
             )
+
+        if self.x_ms_examples is not None:
+            for key, example in self.x_ms_examples.items():
+                try:
+                    example.link(swagger_loader, *self.traces, "x_ms_examples", key)
+                except Exception as e:
+                    logger.error(f"Link example failed: {e}: {key}.")
 
     def to_cmd(self, builder, parent_parameters, host_path, **kwargs):
         cmd_op = CMDHttpOperation()
