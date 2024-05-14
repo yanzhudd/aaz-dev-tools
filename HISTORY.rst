@@ -3,6 +3,10 @@
 Release History
 ===============
 
+2.7.0
+++++++
+* Support example generation (#361)
+
 2.6.2
 ++++++
 * Refine documentation (#345, #349, #355, #356)
