@@ -68,10 +68,10 @@ def get_prop(env, data):
 
 
 @pass_environment
-def get_scope(env, data):
+def avoid_conflict(env, data):
     def convert(data):
         if data in _PYTHON_BUILD_IN_KEYWORDS:
-            return f"{data}_"
+            return f"{data}_"  # pep 8: used by convention to avoid conflicts
 
         return data
 
@@ -88,5 +88,5 @@ custom_filters = {
     "is_stable": is_stable,
     "constant_convert": constant_convert,
     "get_prop": get_prop,
-    "get_scope": get_scope
+    "avoid_conflict": avoid_conflict
 }
