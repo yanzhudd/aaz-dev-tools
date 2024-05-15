@@ -510,7 +510,7 @@ class {{ leaf.cls_name }}(
 
             {%- if scope_define is not none %}
 
-            {{ scope|avoid_conflict }} = {{ op.content.BUILDER_NAME }}.get({{ scope_define|avoid_conflict|constant_convert }})
+            {{ scope|avoid_conflict }} = {{ op.content.BUILDER_NAME }}.get({{ scope_define|constant_convert }})
             if {{ scope|avoid_conflict }} is not None:
             {%- endif %}
 
@@ -520,18 +520,18 @@ class {{ leaf.cls_name }}(
             {%- if prop_name != '[]' and prop_name != '{}' -%}
             {%- if is_const -%}
             {{ scope|avoid_conflict }}.set_const({{ prop_name|constant_convert }}, {{ const_value|constant_convert }}, {{ prop_type }}
-                {%- if arg_key is not none %}, {{ arg_key|constant_convert }}{% endif %}
+                {%- if arg_key is not none %}, {{ arg_key|avoid_conflict|constant_convert }}{% endif %}
                 {%- if prop_type_kwargs is not none and prop_type_kwargs|length %}, typ_kwargs={{ prop_type_kwargs|constant_convert }}{% endif %})
             {%- else -%}
             {{ scope|avoid_conflict }}.set_prop({{ prop_name|constant_convert }}, {{ prop_type }}
-                {%- if arg_key is not none %}, {{ arg_key|constant_convert }}{% endif %}
+                {%- if arg_key is not none %}, {{ arg_key|avoid_conflict|constant_convert }}{% endif %}
                 {%- if prop_type_kwargs is not none and prop_type_kwargs|length %}, typ_kwargs={{ prop_type_kwargs|constant_convert }}{% endif %})
             {%- endif %}
             {%- elif prop_name == '{}' and prop_type is none -%}
-            {{ scope|avoid_conflict }}.set_anytype_elements({%- if arg_key is not none %}{{ arg_key|constant_convert }}{% endif %})
+            {{ scope|avoid_conflict }}.set_anytype_elements({%- if arg_key is not none %}{{ arg_key|avoid_conflict|constant_convert }}{% endif %})
             {%- else -%}
             {{ scope|avoid_conflict }}.set_elements({{ prop_type }}
-                {%- if arg_key is not none %}, {{ arg_key|constant_convert }}{% endif %}
+                {%- if arg_key is not none %}, {{ arg_key|avoid_conflict|constant_convert }}{% endif %}
                 {%- if prop_type_kwargs is not none and prop_type_kwargs|length %}, typ_kwargs={{ prop_type_kwargs|constant_convert }}{% endif %})
             {%- endif %}
             {%- if cls_builder_name is not none %}){% endif %}
@@ -672,7 +672,7 @@ class {{ leaf.cls_name }}(
 
             {%- if scope_define is not none %}
 
-            {{ scope|avoid_conflict }} = {{ op.BUILDER_NAME }}.get({{ scope_define|avoid_conflict|constant_convert }})
+            {{ scope|avoid_conflict }} = {{ op.BUILDER_NAME }}.get({{ scope_define|constant_convert }})
             if {{ scope|avoid_conflict }} is not None:
             {%- endif %}
 
@@ -682,18 +682,18 @@ class {{ leaf.cls_name }}(
             {%- if prop_name != '[]' and prop_name != '{}' -%}
             {%- if is_const -%}
             {{ scope|avoid_conflict }}.set_const({{ prop_name|constant_convert }}, {{ const_value|constant_convert }}, {{ prop_type }}
-                {%- if arg_key is not none %}, {{ arg_key|constant_convert }}{% endif %}
+                {%- if arg_key is not none %}, {{ arg_key|avoid_conflict|constant_convert }}{% endif %}
                 {%- if prop_type_kwargs is not none and prop_type_kwargs|length %}, typ_kwargs={{ prop_type_kwargs|constant_convert }}{% endif %})
             {%- else -%}
             {{ scope|avoid_conflict }}.set_prop({{ prop_name|constant_convert }}, {{ prop_type }}
-                {%- if arg_key is not none %}, {{ arg_key|constant_convert }}{% endif %}
+                {%- if arg_key is not none %}, {{ arg_key|avoid_conflict|constant_convert }}{% endif %}
                 {%- if prop_type_kwargs is not none and prop_type_kwargs|length %}, typ_kwargs={{ prop_type_kwargs|constant_convert }}{% endif %})
             {%- endif %}
             {%- elif prop_name == '{}' and prop_type is none -%}
-            {{ scope|avoid_conflict }}.set_anytype_elements({%- if arg_key is not none %}{{ arg_key|constant_convert }}{% endif %})
+            {{ scope|avoid_conflict }}.set_anytype_elements({%- if arg_key is not none %}{{ arg_key|avoid_conflict|constant_convert }}{% endif %})
             {%- else -%}
             {{ scope|avoid_conflict }}.set_elements({{ prop_type }}
-                {%- if arg_key is not none %}, {{ arg_key|constant_convert }}{% endif %}
+                {%- if arg_key is not none %}, {{ arg_key|avoid_conflict|constant_convert }}{% endif %}
                 {%- if prop_type_kwargs is not none and prop_type_kwargs|length %}, typ_kwargs={{ prop_type_kwargs|constant_convert }}{% endif %})
             {%- endif %}
             {%- if cls_builder_name is not none %}){% endif %}
@@ -750,7 +750,7 @@ class {{ leaf.helper_cls_name }}:
 
         {%- if scope_define is not none %}
 
-        {{ scope|avoid_conflict }} = {{ update_cls.BUILDER_NAME }}.get({{ scope_define|avoid_conflict|constant_convert }})
+        {{ scope|avoid_conflict }} = {{ update_cls.BUILDER_NAME }}.get({{ scope_define|constant_convert }})
         if {{ scope|avoid_conflict }} is not None:
         {%- endif %}
 
@@ -760,18 +760,18 @@ class {{ leaf.helper_cls_name }}:
         {%- if prop_name != '[]' and prop_name != '{}' -%}
         {%- if is_const -%}
         {{ scope|avoid_conflict }}.set_const({{ prop_name|constant_convert }}, {{ const_value|constant_convert }}, {{ prop_type }}
-            {%- if arg_key is not none %}, {{ arg_key|constant_convert }}{% endif %}
+            {%- if arg_key is not none %}, {{ arg_key|avoid_conflict|constant_convert }}{% endif %}
             {%- if prop_type_kwargs is not none and prop_type_kwargs|length %}, typ_kwargs={{ prop_type_kwargs|constant_convert }}{% endif %})
         {%- else -%}
         {{ scope|avoid_conflict }}.set_prop({{ prop_name|constant_convert }}, {{ prop_type }}
-            {%- if arg_key is not none %}, {{ arg_key|constant_convert }}{% endif %}
+            {%- if arg_key is not none %}, {{ arg_key|avoid_conflict|constant_convert }}{% endif %}
             {%- if prop_type_kwargs is not none and prop_type_kwargs|length %}, typ_kwargs={{ prop_type_kwargs|constant_convert }}{% endif %})
         {%- endif %}
         {%- elif prop_name == '{}' and prop_type is none -%}
-        {{ scope|avoid_conflict }}.set_anytype_elements({%- if arg_key is not none %}{{ arg_key|constant_convert }}{% endif %})
+        {{ scope|avoid_conflict }}.set_anytype_elements({%- if arg_key is not none %}{{ arg_key|avoid_conflict|constant_convert }}{% endif %})
         {%- else -%}
         {{ scope|avoid_conflict }}.set_elements({{ prop_type }}
-            {%- if arg_key is not none %}, {{ arg_key|constant_convert }}{% endif %}
+            {%- if arg_key is not none %}, {{ arg_key|avoid_conflict|constant_convert }}{% endif %}
             {%- if prop_type_kwargs is not none and prop_type_kwargs|length %}, typ_kwargs={{ prop_type_kwargs|constant_convert }}{% endif %})
         {%- endif %}
         {%- if cls_builder_name is not none %}){% endif %}
