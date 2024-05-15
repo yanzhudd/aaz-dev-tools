@@ -80,6 +80,15 @@ def avoid_conflict(env, data):
     return ".".join(convert(i) for i in data.split("."))
 
 
+@pass_environment
+def handle_keyword(env, data):
+    assert isinstance(data, str)
+
+    data = data.split(".")
+
+    return data[0] + "".join(get_prop(env, i) for i in data[1:])
+
+
 custom_filters = {
     "camel_case": camel_case,
     "snake_case": snake_case,
@@ -88,5 +97,6 @@ custom_filters = {
     "is_stable": is_stable,
     "constant_convert": constant_convert,
     "get_prop": get_prop,
-    "avoid_conflict": avoid_conflict
+    "avoid_conflict": avoid_conflict,
+    "handle_keyword": handle_keyword,
 }
