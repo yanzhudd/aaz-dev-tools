@@ -820,7 +820,7 @@ class {{ leaf.helper_cls_name }}:
 
         {%- for scope, scope_define, props in resp_cls.iter_scopes() %}
 
-        {{ scope|avoid_conflict }} = {{ scope_define|avoid_conflict }}
+        {{ scope|avoid_conflict }} = {{ scope_define|handle_keyword }}
 
         {%- for prop_name, prop_type, prop_kwargs, cls_builder_name in props %}
         {{ scope|avoid_conflict }}{{ prop_name|get_prop }} = {{ prop_type }}(
