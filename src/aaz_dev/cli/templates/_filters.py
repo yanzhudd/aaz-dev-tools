@@ -32,7 +32,7 @@ def is_stable(env, stage):
 @pass_environment
 def constant_convert(env, data):
     if isinstance(data, str):
-        return f'"%s"' % data.replace('"', '\\"').replace('\n', '\\n')
+        return f'"%s"' % data.replace('\\',  '\\\\').replace('"', '\\"').replace('\n', '\\n')
     elif isinstance(data, (int, float, bool)):
         return f"{data}"
     elif data is None:
