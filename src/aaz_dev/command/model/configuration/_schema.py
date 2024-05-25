@@ -68,6 +68,7 @@ class CMDSchemaEnum(Model):
 
     # properties as nodes
     items = ListType(ModelType(CMDSchemaEnumItem), min_size=1)
+    model_as_string = CMDBooleanField()
 
     def diff(self, old, level):
         if type(self) is not type(old):

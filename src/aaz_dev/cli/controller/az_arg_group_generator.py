@@ -172,9 +172,9 @@ def parse_arg_help(help):
     if not help.lines and not help.ref_commands:
         if not help.short:
             raise exceptions.InvalidAPIUsage("Invalid argument help, short summary is miss.")
-        return help.short
+        return help.short.replace("\n", "").replace("\r", "")
     h = {
-        "short-summary": help.short
+        "short-summary": help.short.replace("\n", "").replace("\r", "")
     }
     if help.lines:
         h["long-summary"] = '\n'.join(help.lines)
@@ -191,7 +191,12 @@ def parse_arg_enum(enum):
         if item.hide:
             continue
         e[item.name] = item.value
-    return e
+    kwargs = {
+        "enum": e
+    }
+    if enum.support_extension and enum.model_as_string:
+        kwargs['enum_support_extension'] = True
+    return kwargs
 
 
 def parse_arg_name(arg):
@@ -288,9 +293,9 @@ def render_arg_base(arg, cmd_ctx, arg_kwargs=None):
 
     if isinstance(arg, CMDStringArgBase):
         arg_type = "AAZStrArg"
-        enum = parse_arg_enum(arg.enum)
-        if enum:
-            arg_kwargs['enum'] = enum
+        enum_kwargs = parse_arg_enum(arg.enum)
+        if enum_kwargs:
+            arg_kwargs.update(enum_kwargs)
 
         if arg.fmt and isinstance(arg.fmt, CMDStringFormat):
             arg_kwargs['fmt'] = fmt = {
@@ -358,9 +363,9 @@ def render_arg_base(arg, cmd_ctx, arg_kwargs=None):
 
     elif isinstance(arg, CMDIntegerArgBase):
         arg_type = "AAZIntArg"
-        enum = parse_arg_enum(arg.enum)
-        if enum:
-            arg_kwargs['enum'] = enum
+        enum_kwargs = parse_arg_enum(arg.enum)
+        if enum_kwargs:
+            arg_kwargs.update(enum_kwargs)
 
         if arg.fmt and isinstance(arg.fmt, CMDIntegerFormat):
             arg_kwargs['fmt'] = fmt = {
@@ -392,9 +397,9 @@ def render_arg_base(arg, cmd_ctx, arg_kwargs=None):
 
     elif isinstance(arg, CMDFloatArgBase):
         arg_type = "AAZFloatArg"
-        enum = parse_arg_enum(arg.enum)
-        if enum:
-            arg_kwargs['enum'] = enum
+        enum_kwargs = parse_arg_enum(arg.enum)
+        if enum_kwargs:
+            arg_kwargs.update(enum_kwargs)
 
         if arg.fmt and isinstance(arg.fmt, CMDFloatFormat):
             arg_kwargs['fmt'] = fmt = {
