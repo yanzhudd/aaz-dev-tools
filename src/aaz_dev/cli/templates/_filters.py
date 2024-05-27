@@ -86,7 +86,7 @@ def handle_keyword(env, data):
 
     data = data.split(".")
 
-    return data[0] + "".join(get_prop(env, i) for i in data[1:])
+    return data[0] + "".join(get_prop(env, i) for i in data[1:])  # keyword in response, x.else.x -> x["else"].x
 
 
 custom_filters = {
