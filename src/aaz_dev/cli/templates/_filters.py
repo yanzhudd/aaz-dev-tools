@@ -67,6 +67,28 @@ def get_prop(env, data):
         return f'.{data}'
 
 
+@pass_environment
+def avoid_conflict(env, data):
+    def convert(data):
+        if data in _PYTHON_BUILD_IN_KEYWORDS:
+            return f"{data}_"  # pep 8: used by convention to avoid conflicts
+
+        return data
+
+    assert isinstance(data, str)
+
+    return ".".join(convert(i) for i in data.split("."))
+
+
+@pass_environment
+def handle_keyword(env, data):
+    assert isinstance(data, str)
+
+    data = data.split(".")
+
+    return data[0] + "".join(get_prop(env, i) for i in data[1:])  # keyword in response, x.else.x -> x["else"].x
+
+
 custom_filters = {
     "camel_case": camel_case,
     "snake_case": snake_case,
@@ -74,5 +96,7 @@ custom_filters = {
     "is_preview": is_preview,
     "is_stable": is_stable,
     "constant_convert": constant_convert,
-    "get_prop": get_prop
+    "get_prop": get_prop,
+    "avoid_conflict": avoid_conflict,
+    "handle_keyword": handle_keyword,
 }
