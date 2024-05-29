@@ -11,14 +11,14 @@ class ArgumentUpdateMixin:
     def _update_arg(cls, arg, **kwargs):
         if isinstance(arg, CMDArg):
             cls._update_cmd_arg(arg, **kwargs)
+            cls._update_arg_enum(arg, **kwargs)
         if isinstance(arg, CMDBooleanArg):
             cls._update_boolean_arg(arg, **kwargs)
         if isinstance(arg, CMDClsArg):
             cls._update_cls_arg(arg, **kwargs)
         if isinstance(arg, CMDArrayArg):
             cls._update_array_arg(arg, **kwargs)
-        if isinstance(arg, CMDFloatArgBase) or isinstance(arg, CMDIntegerArgBase) or isinstance(arg, CMDStringArgBase):
-            cls._update_arg_enum(arg, **kwargs)
+            cls._update_arg_enum(arg.item, **kwargs)
         return arg
 
     @staticmethod
@@ -69,5 +69,7 @@ class ArgumentUpdateMixin:
 
     @staticmethod
     def _update_arg_enum(arg, **kwargs):
-        if 'supportEnumExtension' in kwargs:
+        if 'supportEnumExtension' not in kwargs:
+            return
+        if isinstance(arg, CMDFloatArgBase) or isinstance(arg, CMDIntegerArgBase) or isinstance(arg, CMDStringArgBase):
             arg.enum.support_extension = kwargs['supportEnumExtension']

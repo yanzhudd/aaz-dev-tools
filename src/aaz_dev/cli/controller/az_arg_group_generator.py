@@ -174,7 +174,7 @@ def parse_arg_help(help):
             raise exceptions.InvalidAPIUsage("Invalid argument help, short summary is miss.")
         return help.short.replace("\n", "").replace("\r", "")
     h = {
-        "short-summary": help.short.replace("\n", "").replace("\r", "")
+        "short-summary": help.short
     }
     if help.lines:
         h["long-summary"] = '\n'.join(help.lines)
@@ -194,7 +194,7 @@ def parse_arg_enum(enum):
     kwargs = {
         "enum": e
     }
-    if enum.support_extension and enum.model_as_string:
+    if enum.support_extension:
         kwargs['enum_support_extension'] = True
     return kwargs
 

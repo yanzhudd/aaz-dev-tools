@@ -1027,7 +1027,7 @@ function ArgumentDialog(props: {
                             />
                         </>}
 
-                        {props.arg.modelAsString && <>
+                        {props.arg.hasEnum && <>
                             <InputLabel shrink sx={{ font: "inherit" }}>Support Enum Extension</InputLabel>
                             <Switch sx={{ ml: 4 }}
                                 checked={supportEnumExtension}
@@ -1806,7 +1806,7 @@ interface CMDArg extends CMDArgBase {
     prompt?: CMDArgPromptInput
     configurationKey?: string
     supportEnumExtension?: boolean
-    modelAsString?: boolean
+    hasEnum?: boolean
 }
 
 interface CMDArgBaseT<T> extends CMDArgBase {
@@ -2190,8 +2190,8 @@ function decodeArg(response: any): { arg: CMDArg, clsDefineMap: ClsArgDefinition
         idPart: response.idPart,
         prompt: prompt,
         configurationKey: response.configurationKey,
-        supportEnumExtension: response.enum?.support_extension || false,
-        modelAsString: response.enum?.model_as_string || false
+        supportEnumExtension: response.enum?.support_extension || response.item?.enum?.support_extension || false,
+        hasEnum: response.enum?.items?.length > 0 || response.item?.enum?.items?.length > 0 || false
     }
 
     switch (argBase.type) {
