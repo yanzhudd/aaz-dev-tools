@@ -351,6 +351,8 @@ def editor_workspace_command(name, node_names, leaf_name):
         cfg_editor = manager.load_cfg_editor_by_command(leaf)
         if 'confirmation' in data:
             cfg_editor.update_command_confirmation(*leaf.names, confirmation=data['confirmation'])
+        if 'outputs' in data:
+            cfg_editor.update_command_outputs(*leaf.names, outputs=data['outputs'])
         command = cfg_editor.find_command(*leaf.names)
         result = command.to_primitive()
         manager.save()

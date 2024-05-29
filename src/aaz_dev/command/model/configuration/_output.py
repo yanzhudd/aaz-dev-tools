@@ -12,6 +12,18 @@ class CMDOutput(Model):
     class Options:
         serialize_when_none = False
 
+    @classmethod
+    def from_raw(cls, raw_data):
+        match raw_data.get('type', None):
+            case 'object':
+                return CMDObjectOutput(raw_data)
+            case 'array':
+                return CMDArrayOutput(raw_data)
+            case 'string':
+                return CMDStringOutput(raw_data)
+            case _:
+                raise NotImplementedError()
+
     @serializable
     def type(self):
         return self._get_type()
