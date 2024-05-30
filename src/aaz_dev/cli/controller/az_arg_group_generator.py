@@ -172,7 +172,7 @@ def parse_arg_help(help):
     if not help.lines and not help.ref_commands:
         if not help.short:
             raise exceptions.InvalidAPIUsage("Invalid argument help, short summary is miss.")
-        return help.short.replace("\r", "").replace("\n", "")
+        return help.short
     h = {
         "short-summary": help.short
     }
