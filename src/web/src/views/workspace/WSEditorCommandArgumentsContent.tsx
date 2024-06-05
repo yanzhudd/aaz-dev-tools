@@ -2190,7 +2190,7 @@ function decodeArg(response: any): { arg: CMDArg, clsDefineMap: ClsArgDefinition
         idPart: response.idPart,
         prompt: prompt,
         configurationKey: response.configurationKey,
-        supportEnumExtension: response.enum?.support_extension || response.item?.enum?.support_extension || false,
+        supportEnumExtension: response.enum?.supportExtension || response.item?.enum?.supportExtension || false,
         hasEnum: response.enum?.items?.length > 0 || response.item?.enum?.items?.length > 0 || false
     }
 

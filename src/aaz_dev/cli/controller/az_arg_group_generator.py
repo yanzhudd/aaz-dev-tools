@@ -194,7 +194,7 @@ def parse_arg_enum(enum):
     kwargs = {
         "enum": e
     }
-    if enum.support_extension:
+    if enum.supportExtension:
         kwargs['enum_support_extension'] = True
     return kwargs
 
