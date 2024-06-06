@@ -72,4 +72,5 @@ class ArgumentUpdateMixin:
         if 'supportEnumExtension' not in kwargs:
             return
         if isinstance(arg, CMDFloatArgBase) or isinstance(arg, CMDIntegerArgBase) or isinstance(arg, CMDStringArgBase):
-            arg.enum.support_extension = kwargs['supportEnumExtension']
+            if arg.enum:
+                arg.enum.support_extension = kwargs['supportEnumExtension']

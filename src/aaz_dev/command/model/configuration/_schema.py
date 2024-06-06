@@ -68,10 +68,6 @@ class CMDSchemaEnum(Model):
 
     # properties as nodes
     items = ListType(ModelType(CMDSchemaEnumItem), min_size=1)
-    support_extension = CMDBooleanField(
-        serialized_name="supportExtension",
-        deserialize_from="supportExtension",
-    )
 
     def diff(self, old, level):
         if type(self) is not type(old):
@@ -91,8 +87,6 @@ class CMDSchemaEnum(Model):
                         break
                 if not matched:
                     diff.append(f"MissEnumItem: {old_item.value}")
-            if not self.support_extension and old.support_extension:
-                diff.append("Not support extension now")
 
         if level >= CMDDiffLevelEnum.Structure:
             for item in self.items:
@@ -103,8 +97,6 @@ class CMDSchemaEnum(Model):
                         break
                 if not matched:
                     diff.append(f"NewEnumItem: {item.value}")
-            if self.support_extension and not old.support_extension:
-                diff.append("Support extension now")
 
         return diff
 

@@ -54,7 +54,8 @@ class CMDArgEnum(Model):
                         break
             item = CMDArgEnumItem.build_enum_item(schema_item, ref_enum_item)
             enum.items.append(item)
-        enum.support_extension = schema_enum.support_extension
+        if ref_enum:
+            enum.support_extension = ref_enum.support_extension
         return enum
 
     def reformat(self, **kwargs):
