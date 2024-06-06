@@ -69,8 +69,6 @@ class ArgumentUpdateMixin:
 
     @staticmethod
     def _update_arg_enum(arg, **kwargs):
-        if 'supportEnumExtension' not in kwargs:
-            return
-        if isinstance(arg, CMDFloatArgBase) or isinstance(arg, CMDIntegerArgBase) or isinstance(arg, CMDStringArgBase):
+        if 'supportEnumExtension' in kwargs and isinstance(arg, (CMDFloatArgBase, CMDIntegerArgBase, CMDStringArgBase)):
             if arg.enum:
                 arg.enum.support_extension = kwargs['supportEnumExtension']
