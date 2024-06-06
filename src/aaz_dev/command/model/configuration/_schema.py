@@ -97,7 +97,6 @@ class CMDSchemaEnum(Model):
                         break
                 if not matched:
                     diff.append(f"NewEnumItem: {item.value}")
-
         return diff
 
     def reformat(self, **kwargs):
