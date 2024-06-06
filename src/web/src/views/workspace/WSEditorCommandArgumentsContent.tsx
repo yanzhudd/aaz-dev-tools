@@ -652,6 +652,7 @@ function ArgumentDialog(props: {
     const [singularOptions, setSingularOptions] = useState<string | undefined>(undefined);
     const [group, setGroup] = useState<string>("")
     const [hide, setHide] = useState<boolean>(false);
+    const [supportEnumExtension, setSupportEnumExtension] = useState<boolean>(false);
     const [shortHelp, setShortHelp] = useState<string>("");
     const [longHelp, setLongHelp] = useState<string>("");
     const [argSimilarTree, setArgSimilarTree] = useState<ArgSimilarTree | undefined>(undefined);
@@ -788,6 +789,7 @@ function ArgumentDialog(props: {
             default: argDefault,
             prompt: argPrompt,
             configurationKey: argCfgKey,
+            supportEnumExtension: supportEnumExtension
         }
     }
 
@@ -924,6 +926,7 @@ function ArgumentDialog(props: {
         setStage(props.arg.stage);
         setGroup(props.arg.group);
         setHide(props.arg.hide);
+        setSupportEnumExtension(props.arg.supportEnumExtension || false);
         setShortHelp(props.arg.help?.short ?? "");
         setLongHelp(props.arg.help?.lines?.join("\n") ?? "");
         setConfigurationKey(props.arg.configurationKey ?? "");
@@ -1020,6 +1023,16 @@ function ArgumentDialog(props: {
                                 checked={hide}
                                 onChange={(event: any) => {
                                     setHide(!hide);
+                                }}
+                            />
+                        </>}
+
+                        {props.arg.hasEnum && <>
+                            <InputLabel shrink sx={{ font: "inherit" }}>Support Enum Extension</InputLabel>
+                            <Switch sx={{ ml: 4 }}
+                                checked={supportEnumExtension}
+                                onChange={(event: any) => {
+                                    setSupportEnumExtension(!supportEnumExtension);
                                 }}
                             />
                         </>}
@@ -1792,6 +1805,8 @@ interface CMDArg extends CMDArgBase {
     idPart?: string
     prompt?: CMDArgPromptInput
     configurationKey?: string
+    supportEnumExtension?: boolean
+    hasEnum?: boolean
 }
 
 interface CMDArgBaseT<T> extends CMDArgBase {
@@ -2175,6 +2190,8 @@ function decodeArg(response: any): { arg: CMDArg, clsDefineMap: ClsArgDefinition
         idPart: response.idPart,
         prompt: prompt,
         configurationKey: response.configurationKey,
+        supportEnumExtension: response.enum?.supportExtension || response.item?.enum?.supportExtension || false,
+        hasEnum: response.enum?.items?.length > 0 || response.item?.enum?.items?.length > 0 || false
     }
 
     switch (argBase.type) {

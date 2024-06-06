@@ -1,7 +1,8 @@
 from utils import exceptions
 
 from ..model.configuration import (CMDArg, CMDBooleanArg, CMDClsArg, CMDArrayArg, CMDArgumentHelp, CMDArgDefault,
-                                   CMDPasswordArgPromptInput, CMDArgPromptInput)
+                                   CMDPasswordArgPromptInput, CMDArgPromptInput, CMDFloatArgBase, CMDIntegerArgBase,
+                                   CMDStringArgBase)
 
 
 class ArgumentUpdateMixin:
@@ -10,12 +11,14 @@ class ArgumentUpdateMixin:
     def _update_arg(cls, arg, **kwargs):
         if isinstance(arg, CMDArg):
             cls._update_cmd_arg(arg, **kwargs)
+            cls._update_arg_enum(arg, **kwargs)
         if isinstance(arg, CMDBooleanArg):
             cls._update_boolean_arg(arg, **kwargs)
         if isinstance(arg, CMDClsArg):
             cls._update_cls_arg(arg, **kwargs)
         if isinstance(arg, CMDArrayArg):
             cls._update_array_arg(arg, **kwargs)
+            cls._update_arg_enum(arg.item, **kwargs)
         return arg
 
     @staticmethod
@@ -63,3 +66,9 @@ class ArgumentUpdateMixin:
     def _update_array_arg(arg, **kwargs):
         if 'singularOptions' in kwargs:
             arg.singular_options = kwargs['singularOptions'] or None
+
+    @staticmethod
+    def _update_arg_enum(arg, **kwargs):
+        if 'supportEnumExtension' in kwargs and isinstance(arg, (CMDFloatArgBase, CMDIntegerArgBase, CMDStringArgBase)):
+            if arg.enum:
+                arg.enum.support_extension = kwargs['supportEnumExtension']

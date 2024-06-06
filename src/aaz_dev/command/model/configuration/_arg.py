@@ -36,6 +36,10 @@ class CMDArgEnum(Model):
 
     # properties as nodes
     items = ListType(ModelType(CMDArgEnumItem), min_size=1)
+    support_extension = CMDBooleanField(
+        serialized_name="supportExtension",
+        deserialize_from="supportExtension",
+    )
 
     @classmethod
     def build_enum(cls, schema_enum, ref_enum):
@@ -50,6 +54,8 @@ class CMDArgEnum(Model):
                         break
             item = CMDArgEnumItem.build_enum_item(schema_item, ref_enum_item)
             enum.items.append(item)
+        if ref_enum:
+            enum.support_extension = ref_enum.support_extension
         return enum
 
     def reformat(self, **kwargs):
