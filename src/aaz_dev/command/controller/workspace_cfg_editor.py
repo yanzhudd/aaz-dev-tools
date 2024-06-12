@@ -264,15 +264,11 @@ class WorkspaceCfgEditor(CfgReader, ArgumentUpdateMixin):
         if not outputs:
             command.outputs = None
         else:
-            command.outputs = []
-            for output in outputs:
-                output = CMDOutput.from_raw(output)
-                try:
-                    output.validate()
-                except Exception as err:
-                    raise exceptions.InvalidAPIUsage(
-                        f"Invalid output data: {err}")
-                command.outputs.append(output)
+            command.outputs = CMDComand(raw_data={"outputs": outputs}).outputs
+            try:
+                command.outputs.validate()
+            except Exception as err:
+                raise exceptions.InvalidAPIUsage(f"Invalid output data: {err}")
         self.reformat()
 
     def update_arg_by_var(self, *cmd_names, arg_var, **kwargs):

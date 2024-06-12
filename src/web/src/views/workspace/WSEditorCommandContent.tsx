@@ -80,7 +80,7 @@ interface Command {
     stage: "Stable" | "Preview" | "Experimental"
     version: string
     examples?: Example[]
-    outputs: Output[]
+    outputs?: Output[]
     resources: Resource[]
 
     // additional property
@@ -103,7 +103,7 @@ interface ResponseCommand {
     version: string,
     examples?: Example[],
     resources: Resource[],
-    outputs: Output[],
+    outputs?: Output[],
     confirmation?: string,
     argGroups?: any[],
 }
