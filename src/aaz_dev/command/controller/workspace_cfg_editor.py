@@ -264,9 +264,10 @@ class WorkspaceCfgEditor(CfgReader, ArgumentUpdateMixin):
         if not outputs:
             command.outputs = None
         else:
-            command.outputs = CMDComand(raw_data={"outputs": outputs}).outputs
+            command.outputs = CMDCommand(raw_data={"outputs": outputs}).outputs
             try:
-                command.outputs.validate()
+                for output in command.outputs:
+                    output.validate()
             except Exception as err:
                 raise exceptions.InvalidAPIUsage(f"Invalid output data: {err}")
         self.reformat()
