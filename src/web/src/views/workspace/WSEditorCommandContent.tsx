@@ -1,7 +1,7 @@
-import { Alert, Box, Button, Card, CardActions, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Accordion, InputLabel, LinearProgress, Radio, RadioGroup, TextField, Typography, TypographyProps, AccordionDetails, IconButton, Input, InputAdornment, AccordionSummaryProps, FormGroup, FormLabel, Switch, Grid } from '@mui/material';
+import { Alert, Box, Button, Card, CardActions, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Accordion, InputLabel, LinearProgress, Radio, RadioGroup, TextField, Typography, TypographyProps, AccordionDetails, IconButton, Input, InputAdornment, AccordionSummaryProps, FormLabel, Switch, ButtonBase, FormLabelProps } from '@mui/material';
 import { styled } from '@mui/system';
 import axios from 'axios';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import MuiAccordionSummary from '@mui/material/AccordionSummary';
 import { NameTypography, ShortHelpTypography, ShortHelpPlaceHolderTypography, LongHelpTypography, StableTypography, PreviewTypography, ExperimentalTypography, SubtitleTypography, CardTitleTypography } from './WSEditorTheme';
 import DoDisturbOnRoundedIcon from '@mui/icons-material/DoDisturbOnRounded';
@@ -39,11 +39,12 @@ interface ArrayOutput {
     ref: string,
     clientFlatten: boolean,
     // in python definition, this is CMDVariantField
-    next_link: string,
+    nextLink: string,
 }
 
 interface StringOutput {
     type: 'string',
+    // Union
     ref: string,
     value: string,
 }
@@ -122,12 +123,14 @@ interface WSEditorCommandContentState {
     command?: Command,
     displayCommandDialog: boolean,
     displayExampleDialog: boolean,
+    displayOutputDialog: boolean,
     displayCommandDeleteDialog: boolean,
     displayAddSubcommandDialog: boolean,
     subcommandDefaultGroupNames?: string[],
     subcommandArgVar?: string,
     subcommandSubArgOptions?: { var: string, options: string }[],
     exampleIdx?: number,
+    outputIdx?: number,
     loading: boolean,
 }
 
@@ -166,12 +169,44 @@ const ExampleAccordionSummary = styled((props: AccordionSummaryProps) => (
     },
 }));
 
-const PropOutputTypeTypography = styled(Typography)<TypographyProps>(({ theme }) => ({
+const OutputTypeTypography = styled(Typography)<TypographyProps>(({ theme }) => ({
     color: theme.palette.primary.main,
     fontFamily: "'Work Sans', sans-serif",
     fontSize: 10,
     fontWeight: 400,
 }))
+
+const OutputRefTypography = styled(Typography)<TypographyProps>(({ theme }) => ({
+    color: theme.palette.primary.main,
+    fontFamily: "'Roboto Condensed', sans-serif",
+    fontSize: 18,
+    fontWeight: 700,
+}))
+
+const OutputFlagTypography = styled(Typography)<TypographyProps>(({ theme }) => ({
+    color: '#8888C3',
+    fontFamily: "'Work Sans', sans-serif",
+    fontSize: 10,
+    fontWeight: 400,
+}))
+
+const OutputEditTypography = styled(Typography)<TypographyProps>(({ theme }) => ({
+    color: "#5d64cf",
+    fontFamily: "'Work Sans', sans-serif",
+    fontSize: 14,
+    fontWeight: 400,
+}));
+
+const OutputDialogLabel = styled(FormLabel)<FormLabelProps>(({ theme }) => ({
+    fontSize: 12,
+}));
+
+const OutputDialogMainTypography = styled(Typography)<TypographyProps>(({ theme }) => ({
+    color: theme.palette.primary.main,
+    fontFamily: "'Work Sans', sans-serif",
+    fontSize: 18,
+    fontWeight: 400,
+}));
 
 class WSEditorCommandContent extends React.Component<WSEditorCommandContentProps, WSEditorCommandContentState> {
 
@@ -181,6 +216,7 @@ class WSEditorCommandContent extends React.Component<WSEditorCommandContentProps
             command: undefined,
             displayCommandDialog: false,
             displayExampleDialog: false,
+            displayOutputDialog: false,
             displayCommandDeleteDialog: false,
             displayAddSubcommandDialog: false,
             loading: false,
@@ -267,6 +303,22 @@ class WSEditorCommandContent extends React.Component<WSEditorCommandContentProps
         })
     }
 
+    onOutputDialogDisplay = (idx?: number) => {
+        this.setState({
+            displayOutputDialog: true,
+            outputIdx: idx,
+        })
+    }
+
+    handleOutputDialogClose = (newCommand?: Command) => {
+        if (newCommand) {
+            this.props.onUpdateCommand(newCommand!);
+        }
+        this.setState({
+            displayOutputDialog: false,
+        })
+    }
+
     onAddSubcommandDialogDisplay = (argVar: string, subArgOptions: { var: string, options: string }[], argStackNames: string[]) => {
         this.setState({
             displayAddSubcommandDialog: true,
@@ -287,56 +339,13 @@ class WSEditorCommandContent extends React.Component<WSEditorCommandContentProps
         })
     }
 
-    handleOutputFlattenSwitch = async (idx: number) => {
-        let { workspaceUrl, previewCommand } = this.props;
-        let command = this.state.command!;
-        let outputs = command.outputs;
-        let output = command.outputs[idx];
-
-        
-        this.setState({
-            loading: true,
-        })
-        
-        if (isObjectOutput(output) || isArrayOutput(output)) {
-            let commandNames = previewCommand.names;
-            const leafUrl = `${workspaceUrl}/CommandTree/Nodes/aaz/` + commandNames.slice(0, -1).join('/') + '/Leaves/' + commandNames[commandNames.length - 1];
-            console.log("Original clientFlatten: ");
-            console.log(output.clientFlatten);
-            output.clientFlatten = !output.clientFlatten;
-            console.log("New clientFlatten: ");
-            console.log(output.clientFlatten);
-
-            axios.patch(leafUrl, {
-                outputs: outputs
-            }).then(res => {
-                const cmd = DecodeResponseCommand(res.data);
-                this.setState({
-                    loading: false,
-                })
-                this.props.onUpdateCommand(cmd);
-            }).catch(err => {
-                console.error(err.response);
-                if (err.response?.data?.message) {
-                    const data = err.response!.data!;
-                    console.log(`ResponseError: ${data.message!}: ${JSON.stringify(data.details)}`)
-                }
-                this.setState({
-                    loading: false,
-                })
-            });
-        } else {
-            console.error(`Invalid output type for flatten switch: ${output.type}`);
-        }
-    }
-
     render() {
         const { workspaceUrl, previewCommand } = this.props;
         const commandNames = previewCommand.names;
         const name = commandPrefix + commandNames.join(' ');
         const commandUrl = `${workspaceUrl}/CommandTree/Nodes/aaz/` + commandNames.slice(0, -1).join('/') + '/Leaves/' + commandNames[commandNames.length - 1];
 
-        const { command, displayCommandDialog, displayExampleDialog, displayCommandDeleteDialog, displayAddSubcommandDialog, exampleIdx, loading } = this.state;
+        const { command, displayCommandDialog, displayExampleDialog, displayOutputDialog, displayCommandDeleteDialog, displayAddSubcommandDialog, exampleIdx, outputIdx, loading } = this.state;
 
         const buildExampleView = (example: Example, idx: number) => {
             const buildCommand = (exampleCommand: string, cmdIdx: number) => {
@@ -403,101 +412,112 @@ class WSEditorCommandContent extends React.Component<WSEditorCommandContentProps
             )
         }
 
-        const buildOutputView = (output: Output, idx: number) => {
-            switch (output.type) {
-                case "object":
-                    return buildObjectOutputView(output, idx);
-                case "array":
-                    return buildArrayOutputView(output, idx);
-                case "string":
-                    return buildStringOutputView(output, idx);
-            }
-        }
-
-        const buildObjectOutputView = (output: ObjectOutput, idx: number) => {
-            return (<Box key={`output-${idx}-${output.ref}`} sx={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "flex-start",
-                mx: 2
-            }}> 
-                <Box width={1/3}>{outputGeneralInfo(output.ref, output.type)}</Box>
-                <Box width={1/3}><FormControlLabel control={<Switch
-                    checked={output.clientFlatten}
-                    onChange={(event: any) => {
-                        this.handleOutputFlattenSwitch(idx);
-                    }}
-                />} label="Flatten" labelPlacement="start"/></Box>
-            </Box>)
-        }
-
-        const buildArrayOutputView = (output: ArrayOutput, idx: number) => {
-            return (<Box key={`output-${idx}-${output.ref}`} sx={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "flex-start",
-                mx: 2
-            }}> 
-                <Box width={1/3}>{outputGeneralInfo(output.ref, output.type)}</Box>
-                <Box width={1/3}><FormControlLabel control={<Switch
-                    checked={output.clientFlatten}
-                    onChange={(event: any) => {
-                        this.handleOutputFlattenSwitch(idx);
-                    }}
-                />} label="Flatten" labelPlacement="start"/></Box>
-                {output.next_link && <Box width={1/3}><Box sx={{ ml: 2, 
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "flex-start" }}>
-                    <Typography variant='body1' sx={{mr:2}}>Next Link</Typography>
-                    <Typography variant='body2'>{output.next_link}</Typography>
-                </Box></Box>}
-            </Box>)
-        }
-
-        const buildStringOutputView = (output: StringOutput, idx: number) => {
-            return (<Box key={`output-${idx}-${output.ref}`} sx={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "flex-start",
-                mx: 2
-            }}> 
-                <Box width={1/3}>{outputGeneralInfo(output.ref, output.type)}</Box>
-                {output.value && <Box width={1/3}><Box sx={{ ml: 2, 
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "flex-start" }}>
-                    <Typography variant='body1' sx={{mr:2}}>Value</Typography>
-                    <Typography variant='body2'>{output.value}</Typography>
-                </Box></Box>}
-            </Box>)
-        }
-
-        const outputGeneralInfo = (ref: string, type: string) => {
-            return (<Box sx={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "flex-start"
-            }}>
-                <Typography variant='body1' sx={{mr:2}}>Reference</Typography>
+        const buildOutputGroupView = (outputFormat: string, outputs: Output[]) => {
+            return (<React.Fragment>
                 <Box sx={{
+                    p: 2,
+                    display: "flex",
+                    flexDirection: "row",
+                    alignItems: "center",
+                }}>
+                    <SubtitleTypography>{outputFormat}</SubtitleTypography>
+                </Box>
+                <Box sx={{ ml: 4, display: "flex", flexDirection: "column" }}>
+                    {outputs.map(buildOutputView)}
+                </Box>
+            </React.Fragment>)
+        }
+
+        const buildBaseOutputView = (idx: number, refName: string, type: string, flags: string[],
+            onClick?: React.MouseEventHandler<HTMLButtonElement> | undefined) => {
+            return (<Box
+                key={`output-${idx}-${refName}`}
+                sx={{
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "stretch",
+                    justifyContent: "flex-start",
+                    mb: 2
+                }}>
+                <Box>
+                    <ButtonBase onClick={onClick}>
+                        <OutputRefTypography>{refName}</OutputRefTypography>
+                    </ButtonBase>
+                    <Button sx={{ flexShrink: 0, ml: 3 }}
+                        startIcon={<EditIcon color="secondary" fontSize='small' />}
+                        onClick={onClick}
+                    >
+                        <OutputEditTypography>Edit</OutputEditTypography>
+                    </Button>
+                </Box>
+                <Box sx={{
+                    display: "flex",
+                    flexDirection: "row",
+                    alignItems: "flex-start",
                     justifyContent: "flex-start"
                 }}>
-                    <Typography variant='body2' sx={{fontWeight: "bold"}}>{ref}</Typography>
-                    <PropOutputTypeTypography sx={{
+                    <Box sx={{
+                        width: 300,
                         flexShrink: 0,
-                    }}>/{type}/</PropOutputTypeTypography>
+                        flexDirection: "row",
+                        display: "flex",
+                        alignItems: "center",
+                    }}>
+                        <OutputTypeTypography sx={{
+                            flexShrink: 0,
+                        }}>{`/${type}/`}</OutputTypeTypography>
+                        <Box sx={{ flexGrow: 1 }} />
+                        {flags.map((flag, idx) => {
+                            return <OutputFlagTypography key={`output-flag-${idx}`}>{`[${flag}]`}</OutputFlagTypography>
+                        })}
+                    </Box>
                 </Box>
             </Box>)
+        }
+
+        const buildObjectOutputView = (output: ObjectOutput, idx: number,
+            onClick?: React.MouseEventHandler<HTMLButtonElement> | undefined) => {
+            return buildBaseOutputView(
+                idx,
+                output.ref,
+                output.type,
+                output.clientFlatten ? ['Flattened'] : ['Unflattened'],
+                onClick)
+        }
+
+        const buildArrayOutputView = (output: ArrayOutput, idx: number,
+            onClick?: React.MouseEventHandler<HTMLButtonElement> | undefined) => {
+            return buildBaseOutputView(
+                idx,
+                output.ref,
+                output.type,
+                output.clientFlatten ? ['Flattened'] : ['Unflattened'],
+                onClick)
+        }
+
+        const buildStringOutputView = (output: StringOutput, idx: number,
+            onClick?: React.MouseEventHandler<HTMLButtonElement> | undefined) => {
+            const title = output.ref ? output.ref : output.value;
+            return buildBaseOutputView(
+                idx,
+                title,
+                output.type,
+                [],
+                onClick)
+        }
+
+        const buildOutputView = (output: Output, idx: number) => {
+            const onClick = () => {
+                this.onOutputDialogDisplay(idx);
+            }
+            switch (output.type) {
+                case "object":
+                    return buildObjectOutputView(output, idx, onClick);
+                case "array":
+                    return buildArrayOutputView(output, idx, onClick);
+                case "string":
+                    return buildStringOutputView(output, idx, onClick);
+            }
         }
 
         const buildCommandCard = () => {
@@ -674,7 +694,7 @@ class WSEditorCommandContent extends React.Component<WSEditorCommandContentProps
 
         const buildOutputCard = () => {
             const outputs = command!.outputs!
-            return (<Card 
+            return (<Card
                 elevation={3}
                 sx={{
                     flexGrow: 1,
@@ -694,18 +714,18 @@ class WSEditorCommandContent extends React.Component<WSEditorCommandContentProps
                         mb: 2,
                         display: 'flex',
                         flexDirection: 'row',
-                        alignItems: "center"
+                        alignItems: 'center',
                     }}>
                         <CardTitleTypography sx={{ flexShrink: 0 }}>
                             [ OUTPUT ]
                         </CardTitleTypography>
 
                     </Box>
-                    {outputs.length > 0 && <Box sx={{my: 1}}>
-                        {outputs.map(buildOutputView)}
+                    {outputs.length > 0 && <Box sx={{ my: 1 }}>
+                        {buildOutputGroupView('JSON', outputs)}
                     </Box>}
                 </CardContent>
-                  
+
             </Card>)
         }
 
@@ -723,6 +743,7 @@ class WSEditorCommandContent extends React.Component<WSEditorCommandContentProps
                 </Box>
                 {command !== undefined && displayCommandDialog && <CommandDialog open={displayCommandDialog} workspaceUrl={workspaceUrl} command={command!} onClose={this.handleCommandDialogClose} />}
                 {command !== undefined && displayExampleDialog && <ExampleDialog open={displayExampleDialog} workspaceUrl={workspaceUrl} command={command!} idx={exampleIdx} onClose={this.handleExampleDialogClose} />}
+                {command !== undefined && displayOutputDialog && <OutputDialog open={displayOutputDialog} workspaceUrl={workspaceUrl} command={command!} idx={outputIdx} onClose={this.handleOutputDialogClose} />}
                 {command !== undefined && displayCommandDeleteDialog && <CommandDeleteDialog open={displayCommandDeleteDialog} workspaceUrl={workspaceUrl} command={command!} onClose={this.handleCommandDeleteDialogClose} />}
                 {command !== undefined && displayAddSubcommandDialog && <AddSubcommandDialog open={displayAddSubcommandDialog} workspaceUrl={workspaceUrl} command={command!} onClose={this.handleAddSubcommandDisplayClose} argVar={this.state.subcommandArgVar!} subArgOptions={this.state.subcommandSubArgOptions!} defaultGroupNames={this.state.subcommandDefaultGroupNames!} />}
             </React.Fragment>
@@ -1384,14 +1405,14 @@ class ExampleDialog extends React.Component<ExampleDialogProps, ExampleDialogSta
             >
                 <DialogTitle>
                     {isAdd ? "Add Example" : "Modify Example"}
-                    <IconButton style={{ position: "absolute", right: 16, top: 8}} edge="end" color="inherit" onClick={this.handleClose} aria-label="close">
+                    <IconButton style={{ position: "absolute", right: 16, top: 8 }} edge="end" color="inherit" onClick={this.handleClose} aria-label="close">
                         <CloseIcon />
                     </IconButton>
                 </DialogTitle>
                 <DialogContent dividers={true}>
                     {isAdd && source === undefined &&
                         <Stack direction="column" spacing={2}>
-                            <Button variant='contained' size="large" color='secondary' sx={{ fontSize: '20px', padding: '10px 20px' }} onClick={() => {this.loadSwaggerExamples()}}>
+                            <Button variant='contained' size="large" color='secondary' sx={{ fontSize: '20px', padding: '10px 20px' }} onClick={() => { this.loadSwaggerExamples() }}>
                                 <Typography variant='body2'>By OpenAPI Specification</Typography>
                             </Button>
                             {/* <Button variant='outlined' size="large" color='secondary' sx={{ fontSize: '20px', padding: '10px 20px' }} disabled>
@@ -1424,7 +1445,7 @@ class ExampleDialog extends React.Component<ExampleDialogProps, ExampleDialogSta
                                     />
                                 </React.Fragment>
                             }
-                            {source === "swagger" && 
+                            {source === "swagger" &&
                                 <React.Fragment>
                                     <ExampleItemSelector
                                         name="Name"
@@ -1458,20 +1479,20 @@ class ExampleDialog extends React.Component<ExampleDialogProps, ExampleDialogSta
                     }
                 </DialogContent>
                 {(!isAdd || source != undefined) &&
-                <DialogActions>
-                    {updating &&
-                        <Box sx={{ width: '100%' }}>
-                            <LinearProgress color='secondary' />
-                        </Box>
-                    }
-                    {!updating && <React.Fragment>
-                        {!isAdd && <React.Fragment>
-                            <Button onClick={this.handleDelete}>Delete</Button>
-                            <Button onClick={this.handleModify}>Save</Button>
+                    <DialogActions>
+                        {updating &&
+                            <Box sx={{ width: '100%' }}>
+                                <LinearProgress color='secondary' />
+                            </Box>
+                        }
+                        {!updating && <React.Fragment>
+                            {!isAdd && <React.Fragment>
+                                <Button onClick={this.handleDelete}>Delete</Button>
+                                <Button onClick={this.handleModify}>Save</Button>
+                            </React.Fragment>}
+                            {isAdd && <Button onClick={this.handleAdd}>Add</Button>}
                         </React.Fragment>}
-                        {isAdd && <Button onClick={this.handleAdd}>Add</Button>}
-                    </React.Fragment>}
-                </DialogActions>}
+                    </DialogActions>}
             </Dialog>
         )
     }
@@ -1641,6 +1662,103 @@ function AddSubcommandDialog(props: {
                 <Button onClick={handleClose}>Cancel</Button>
                 <Button onClick={handleAddSubresource}>Add Subcommands</Button>
             </>}
+        </DialogActions>
+    </Dialog>)
+}
+
+function OutputDialog(props: {
+    workspaceUrl: string,
+    command: Command,
+    idx?: number,
+    open: boolean,
+    onClose: (newCommand?: Command) => void,
+}) {
+    const [updating, setUpdating] = useState<boolean>(false);
+    const [invalidText, setInvalidText] = useState<string | undefined>(undefined);
+    const outputs = props.command.outputs ?? []
+    const output = outputs[props.idx!]
+    const [flatten, setFlatten] = useState<boolean>(output.type !== 'string' ? output.clientFlatten : false);
+    const flattenLabelContent = useMemo(() => {
+        return flatten? 'Flattened': 'Unflattened';
+    }, [flatten]);
+
+    const handleClose = () => {
+        setInvalidText(undefined);
+        props.onClose();
+    }
+
+    const handleUpdateOutput = () => {
+        setInvalidText(undefined);
+        setUpdating(true);
+        
+        if (isObjectOutput(output) || isArrayOutput(output)) {
+            let commandNames = props.command.names;
+            const leafUrl = `${props.workspaceUrl}/CommandTree/Nodes/aaz/` + commandNames.slice(0, -1).join('/') + '/Leaves/' + commandNames[commandNames.length - 1];
+            console.log("Original clientFlatten: ");
+            console.log(output.clientFlatten);
+            output.clientFlatten = !output.clientFlatten;
+            console.log("New clientFlatten: ");
+            console.log(output.clientFlatten);
+
+            axios.patch(leafUrl, {
+                outputs: outputs
+            }).then(res => {
+                const cmd = DecodeResponseCommand(res.data);
+                setUpdating(false);
+                props.onClose(cmd);
+            }).catch(err => {
+                console.error(err.response);
+                if (err.response?.data?.message) {
+                    const data = err.response!.data!;
+                    setInvalidText(`ResponseError: ${data.message!}: ${JSON.stringify(data.details)}`);
+                }
+                setUpdating(false);
+            });
+        } else {
+            console.error(`Invalid output type for flatten switch: ${output.type}`);
+            setInvalidText(`Invalid output type for flatten switch: ${output.type}`);
+        }
+    }
+
+    return (<Dialog
+        disableEscapeKeyDown
+        open={props.open}
+        sx={{ '& .MuiDialog-paper': { width: '80%' } }}
+    >
+        <DialogTitle>Output</DialogTitle>
+        <DialogContent dividers={true}>
+            {invalidText && <Alert variant="filled" severity='error'> {invalidText} </Alert>}
+            {(output.type !== 'string' || output.ref !== undefined) && <React.Fragment>
+                <OutputDialogLabel>Reference</OutputDialogLabel>
+                <OutputDialogMainTypography sx={{ my: 1 }}>{output.ref}</OutputDialogMainTypography></React.Fragment>
+            }
+            {(output.type == 'string' && output.ref == undefined) && <React.Fragment>
+                <OutputDialogLabel>Value</OutputDialogLabel>
+                <OutputDialogMainTypography sx={{ my: 1 }}>{output.value}</OutputDialogMainTypography></React.Fragment>
+            }
+            {(output.type !== 'string' || output.ref !== undefined) && <React.Fragment>
+                <OutputDialogLabel>Client Flatten</OutputDialogLabel>
+                <Box sx={{display: 'flex'}}><FormControlLabel sx={{ ml: 2 }} control={<Switch
+                    checked={flatten}
+                    onChange={(event: any) => {
+                        setFlatten(event.target.checked)
+                    }}
+                />} label={<OutputDialogMainTypography sx={{mx: 2}}>{flattenLabelContent}</OutputDialogMainTypography>} labelPlacement="end"/></Box></React.Fragment>
+            }
+            {(output.type == 'array' && output.nextLink !== undefined) && <React.Fragment>
+                <OutputDialogLabel>Next Link</OutputDialogLabel>
+                <OutputDialogMainTypography sx={{ my: 1 }}>{output.nextLink}</OutputDialogMainTypography></React.Fragment>
+            }
+        </DialogContent>
+        <DialogActions>
+            {updating &&
+                <Box sx={{ width: '100%' }}>
+                    <LinearProgress color='secondary' />
+                </Box>
+            }
+            {!updating &&
+                <Button onClick={handleClose}>Cancel</Button>}
+                <Button onClick={handleUpdateOutput}>Update</Button>
         </DialogActions>
     </Dialog>)
 }
