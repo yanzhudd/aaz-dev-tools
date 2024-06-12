@@ -1678,9 +1678,7 @@ function OutputDialog(props: {
     const outputs = props.command.outputs ?? []
     const output = outputs[props.idx!]
     const [flatten, setFlatten] = useState<boolean>(output.type !== 'string' ? output.clientFlatten : false);
-    const flattenLabelContent = useMemo(() => {
-        return flatten? 'Flattened': 'Unflattened';
-    }, [flatten]);
+    const flattenLabelContent = flatten? 'Flattened': 'Unflattened';
 
     const handleClose = () => {
         setInvalidText(undefined);
