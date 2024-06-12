@@ -28,23 +28,19 @@ interface Example {
 
 interface ObjectOutput {
     type: 'object',
-    // in python definition, this is CMDVariantField
     ref: string,
     clientFlatten: boolean,
 }
 
 interface ArrayOutput {
     type: 'array',
-    // in python definition, this is CMDVariantField
     ref: string,
     clientFlatten: boolean,
-    // in python definition, this is CMDVariantField
     nextLink: string,
 }
 
 interface StringOutput {
     type: 'string',
-    // Union
     ref: string,
     value: string,
 }
