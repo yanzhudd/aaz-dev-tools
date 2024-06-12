@@ -7,6 +7,7 @@ import { NameTypography, ShortHelpTypography, ShortHelpPlaceHolderTypography, Lo
 import DoDisturbOnRoundedIcon from '@mui/icons-material/DoDisturbOnRounded';
 import AddCircleRoundedIcon from '@mui/icons-material/AddCircleRounded';
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
+import DataObjectIcon from '@mui/icons-material/DataObject';
 import LabelIcon from '@mui/icons-material/Label';
 import WSEditorCommandArgumentsContent, { ClsArgDefinitionMap, CMDArg, DecodeArgs } from './WSEditorCommandArgumentsContent';
 import EditIcon from '@mui/icons-material/Edit';
@@ -175,7 +176,7 @@ const OutputTypeTypography = styled(Typography)<TypographyProps>(({ theme }) => 
 const OutputRefTypography = styled(Typography)<TypographyProps>(({ theme }) => ({
     color: theme.palette.primary.main,
     fontFamily: "'Roboto Condensed', sans-serif",
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 700,
 }))
 
@@ -408,114 +409,6 @@ class WSEditorCommandContent extends React.Component<WSEditorCommandContentProps
             )
         }
 
-        const buildOutputGroupView = (outputFormat: string, outputs: Output[]) => {
-            return (<React.Fragment>
-                <Box sx={{
-                    p: 2,
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "center",
-                }}>
-                    <SubtitleTypography>{outputFormat}</SubtitleTypography>
-                </Box>
-                <Box sx={{ ml: 4, display: "flex", flexDirection: "column" }}>
-                    {outputs.map(buildOutputView)}
-                </Box>
-            </React.Fragment>)
-        }
-
-        const buildBaseOutputView = (idx: number, refName: string, type: string, flags: string[],
-            onClick?: React.MouseEventHandler<HTMLButtonElement> | undefined) => {
-            return (<Box
-                key={`output-${idx}-${refName}`}
-                sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "stretch",
-                    justifyContent: "flex-start",
-                    mb: 2
-                }}>
-                <Box>
-                    <ButtonBase onClick={onClick}>
-                        <OutputRefTypography>{refName}</OutputRefTypography>
-                    </ButtonBase>
-                    <Button sx={{ flexShrink: 0, ml: 3 }}
-                        startIcon={<EditIcon color="secondary" fontSize='small' />}
-                        onClick={onClick}
-                    >
-                        <OutputEditTypography>Edit</OutputEditTypography>
-                    </Button>
-                </Box>
-                <Box sx={{
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "flex-start",
-                    justifyContent: "flex-start"
-                }}>
-                    <Box sx={{
-                        width: 300,
-                        flexShrink: 0,
-                        flexDirection: "row",
-                        display: "flex",
-                        alignItems: "center",
-                    }}>
-                        <OutputTypeTypography sx={{
-                            flexShrink: 0,
-                        }}>{`/${type}/`}</OutputTypeTypography>
-                        <Box sx={{ flexGrow: 1 }} />
-                        {flags.map((flag, idx) => {
-                            return <OutputFlagTypography key={`output-flag-${idx}`}>{`[${flag}]`}</OutputFlagTypography>
-                        })}
-                    </Box>
-                </Box>
-            </Box>)
-        }
-
-        const buildObjectOutputView = (output: ObjectOutput, idx: number,
-            onClick?: React.MouseEventHandler<HTMLButtonElement> | undefined) => {
-            return buildBaseOutputView(
-                idx,
-                output.ref,
-                output.type,
-                output.clientFlatten ? ['Flattened'] : ['Unflattened'],
-                onClick)
-        }
-
-        const buildArrayOutputView = (output: ArrayOutput, idx: number,
-            onClick?: React.MouseEventHandler<HTMLButtonElement> | undefined) => {
-            return buildBaseOutputView(
-                idx,
-                output.ref,
-                output.type,
-                output.clientFlatten ? ['Flattened'] : ['Unflattened'],
-                onClick)
-        }
-
-        const buildStringOutputView = (output: StringOutput, idx: number,
-            onClick?: React.MouseEventHandler<HTMLButtonElement> | undefined) => {
-            const title = output.ref ? output.ref : output.value;
-            return buildBaseOutputView(
-                idx,
-                title,
-                output.type,
-                [],
-                onClick)
-        }
-
-        const buildOutputView = (output: Output, idx: number) => {
-            const onClick = () => {
-                this.onOutputDialogDisplay(idx);
-            }
-            switch (output.type) {
-                case "object":
-                    return buildObjectOutputView(output, idx, onClick);
-                case "array":
-                    return buildArrayOutputView(output, idx, onClick);
-                case "string":
-                    return buildStringOutputView(output, idx, onClick);
-            }
-        }
-
         const buildCommandCard = () => {
             const shortHelp = (command ?? previewCommand).help?.short;
             const longHelp = (command ?? previewCommand).help?.lines?.join('\n');
@@ -688,43 +581,6 @@ class WSEditorCommandContent extends React.Component<WSEditorCommandContentProps
             </Card>)
         }
 
-        const buildOutputCard = () => {
-            const outputs = command!.outputs!
-            return (<Card
-                elevation={3}
-                sx={{
-                    flexGrow: 1,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    mt: 1,
-                    p: 2
-                }}>
-
-                <CardContent sx={{
-                    flex: '1 0 auto',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'stretch',
-                }}>
-                    <Box sx={{
-                        mb: 2,
-                        display: 'flex',
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                    }}>
-                        <CardTitleTypography sx={{ flexShrink: 0 }}>
-                            [ OUTPUT ]
-                        </CardTitleTypography>
-
-                    </Box>
-                    {outputs.length > 0 && <Box sx={{ my: 1 }}>
-                        {buildOutputGroupView('JSON', outputs)}
-                    </Box>}
-                </CardContent>
-
-            </Card>)
-        }
-
         return (
             <React.Fragment>
                 <Box sx={{
@@ -735,7 +591,7 @@ class WSEditorCommandContent extends React.Component<WSEditorCommandContentProps
                     {buildCommandCard()}
                     {command !== undefined && command.args !== undefined && buildArgumentsCard()}
                     {command !== undefined && buildExampleCard()}
-                    {command !== undefined && command.outputs !== undefined && buildOutputCard()}
+                    {command !== undefined && command.outputs !== undefined && <OutputCard command={command} onOutputDialogDisplay={this.onOutputDialogDisplay}/>}
                 </Box>
                 {command !== undefined && displayCommandDialog && <CommandDialog open={displayCommandDialog} workspaceUrl={workspaceUrl} command={command!} onClose={this.handleCommandDialogClose} />}
                 {command !== undefined && displayExampleDialog && <ExampleDialog open={displayExampleDialog} workspaceUrl={workspaceUrl} command={command!} idx={exampleIdx} onClose={this.handleExampleDialogClose} />}
@@ -1662,6 +1518,149 @@ function AddSubcommandDialog(props: {
     </Dialog>)
 }
 
+function OutputCard(props: {
+    command: Command,
+    onOutputDialogDisplay: (idx: number) => void
+}) {
+    const outputs = props.command!.outputs!
+
+    const buildBaseOutputView = (idx: number, refName: string, type: string, flags: string[],
+        onClick?: React.MouseEventHandler<HTMLButtonElement> | undefined) => {
+        return (<Box
+            key={`output-${idx}-${refName}`}
+            sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "stretch",
+                justifyContent: "flex-start",
+                mb: 2
+            }}>
+            <Box>
+                <ButtonBase onClick={onClick}>
+                    <OutputRefTypography>{refName}</OutputRefTypography>
+                </ButtonBase>
+                <Button sx={{ flexShrink: 0, ml: 3 }}
+                    startIcon={<EditIcon color="secondary" fontSize='small' />}
+                    onClick={onClick}
+                >
+                    <OutputEditTypography>Edit</OutputEditTypography>
+                </Button>
+            </Box>
+            <Box sx={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "flex-start",
+                justifyContent: "flex-start"
+            }}>
+                <Box sx={{
+                    width: 300,
+                    flexShrink: 0,
+                    flexDirection: "row",
+                    display: "flex",
+                    alignItems: "center",
+                }}>
+                    <OutputTypeTypography sx={{
+                        flexShrink: 0,
+                    }}>{`/${type}/`}</OutputTypeTypography>
+                    <Box sx={{ flexGrow: 1 }} />
+                    {flags.map((flag, idx) => {
+                        return <OutputFlagTypography key={`output-flag-${idx}`}>{`[${flag}]`}</OutputFlagTypography>
+                    })}
+                </Box>
+            </Box>
+        </Box>)
+    }
+
+    const buildObjectOutputView = (output: ObjectOutput, idx: number,
+        onClick?: React.MouseEventHandler<HTMLButtonElement> | undefined) => {
+        return buildBaseOutputView(
+            idx,
+            output.ref,
+            output.type,
+            output.clientFlatten ? ['Flattened'] : ['Unflattened'],
+            onClick)
+    }
+
+    const buildArrayOutputView = (output: ArrayOutput, idx: number,
+        onClick?: React.MouseEventHandler<HTMLButtonElement> | undefined) => {
+        return buildBaseOutputView(
+            idx,
+            output.ref,
+            output.type,
+            output.clientFlatten ? ['Flattened'] : ['Unflattened'],
+            onClick)
+    }
+
+    const buildStringOutputView = (output: StringOutput, idx: number,
+        onClick?: React.MouseEventHandler<HTMLButtonElement> | undefined) => {
+        const title = output.ref ? output.ref : output.value;
+        return buildBaseOutputView(
+            idx,
+            title,
+            output.type,
+            [],
+            onClick)
+    }
+
+    const buildOutputView = (output: Output, idx: number) => {
+        const onClick = () => {
+            props.onOutputDialogDisplay(idx);
+        }
+        switch (output.type) {
+            case "object":
+                return buildObjectOutputView(output, idx, onClick);
+            case "array":
+                return buildArrayOutputView(output, idx, onClick);
+            case "string":
+                return buildStringOutputView(output, idx, onClick);
+        }
+    }
+
+    return (<Card
+        elevation={3}
+        sx={{
+            flexGrow: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            mt: 1,
+            p: 2
+        }}>
+
+        <CardContent sx={{
+            flex: '1 0 auto',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'stretch',
+        }}>
+            <Box sx={{
+                mb: 2,
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+            }}>
+                <CardTitleTypography sx={{ flexShrink: 0 }}>
+                    [ OUTPUT ]
+                </CardTitleTypography>
+
+            </Box>
+            {outputs.length > 0 && <Box sx={{ my: 1 }}>
+                <Box sx={{
+                    p: 2,
+                    display: "flex",
+                    flexDirection: "row",
+                    alignItems: "center",
+                }}>
+                    <DataObjectIcon fontSize='small'/><SubtitleTypography sx={{ml: 1}}>JSON</SubtitleTypography>
+                </Box>
+                <Box sx={{ ml: 5, display: "flex", flexDirection: "column" }}>
+                    {outputs.map(buildOutputView)}
+                </Box>
+            </Box>}
+        </CardContent>
+
+    </Card>)
+}
+
 function OutputDialog(props: {
     workspaceUrl: string,
     command: Command,
@@ -1719,16 +1718,20 @@ function OutputDialog(props: {
         open={props.open}
         sx={{ '& .MuiDialog-paper': { width: '80%' } }}
     >
-        <DialogTitle>Output</DialogTitle>
+        <DialogTitle>JSON Format Output</DialogTitle>
         <DialogContent dividers={true}>
             {invalidText && <Alert variant="filled" severity='error'> {invalidText} </Alert>}
             {(output.type !== 'string' || output.ref !== undefined) && <React.Fragment>
-                <OutputDialogLabel>Reference</OutputDialogLabel>
+                <OutputDialogLabel>Output Reference</OutputDialogLabel>
                 <OutputDialogMainTypography sx={{ my: 1 }}>{output.ref}</OutputDialogMainTypography></React.Fragment>
             }
             {(output.type == 'string' && output.ref == undefined) && <React.Fragment>
-                <OutputDialogLabel>Value</OutputDialogLabel>
+                <OutputDialogLabel>Output Value</OutputDialogLabel>
                 <OutputDialogMainTypography sx={{ my: 1 }}>{output.value}</OutputDialogMainTypography></React.Fragment>
+            }
+            {(output.type == 'array' && output.nextLink !== undefined) && <React.Fragment>
+                <OutputDialogLabel>Next Link Reference</OutputDialogLabel>
+                <OutputDialogMainTypography sx={{ my: 1 }}>{output.nextLink}</OutputDialogMainTypography></React.Fragment>
             }
             {(output.type !== 'string' || output.ref !== undefined) && <React.Fragment>
                 <OutputDialogLabel>Client Flatten</OutputDialogLabel>
@@ -1738,10 +1741,6 @@ function OutputDialog(props: {
                         setFlatten(event.target.checked)
                     }}
                 />} label={<OutputDialogMainTypography sx={{mx: 2}}>{flattenLabelContent}</OutputDialogMainTypography>} labelPlacement="end"/></Box></React.Fragment>
-            }
-            {(output.type == 'array' && output.nextLink !== undefined) && <React.Fragment>
-                <OutputDialogLabel>Next Link</OutputDialogLabel>
-                <OutputDialogMainTypography sx={{ my: 1 }}>{output.nextLink}</OutputDialogMainTypography></React.Fragment>
             }
         </DialogContent>
         <DialogActions>
