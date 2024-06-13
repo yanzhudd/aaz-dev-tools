@@ -253,6 +253,24 @@ class WorkspaceCfgEditor(CfgReader, ArgumentUpdateMixin):
         if confirmation != command.confirmation:
             command.confirmation = confirmation
         self.reformat()
+    
+    def update_command_outputs(self, *cmd_names, outputs):
+        if len(cmd_names) < 2:
+            raise exceptions.InvalidAPIUsage(f"Invalid command name, it's empty")
+
+        command = self.find_command(*cmd_names)
+        if command is None:
+            raise exceptions.ResourceNotFind(f"Cannot find definition for command '{' '.join(cmd_names)}'")
+        if not outputs:
+            command.outputs = None
+        else:
+            command.outputs = CMDCommand(raw_data={"outputs": outputs}).outputs
+            try:
+                for output in command.outputs:
+                    output.validate()
+            except Exception as err:
+                raise exceptions.InvalidAPIUsage(f"Invalid output data: {err}")
+        self.reformat()
 
     def update_arg_by_var(self, *cmd_names, arg_var, **kwargs):
         arg, _ = self.find_arg_by_var(*cmd_names, arg_var=arg_var)

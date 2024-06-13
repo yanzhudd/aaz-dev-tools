@@ -1,12 +1,13 @@
-import { Alert, Box, Button, Card, CardActions, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Accordion, InputLabel, LinearProgress, Radio, RadioGroup, TextField, Typography, TypographyProps, AccordionDetails, IconButton, Input, InputAdornment, AccordionSummaryProps, FormGroup, FormLabel } from '@mui/material';
+import { Alert, Box, Button, Card, CardActions, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Accordion, InputLabel, LinearProgress, Radio, RadioGroup, TextField, Typography, TypographyProps, AccordionDetails, IconButton, Input, InputAdornment, AccordionSummaryProps, FormLabel, Switch, ButtonBase, FormLabelProps } from '@mui/material';
 import { styled } from '@mui/system';
 import axios from 'axios';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import MuiAccordionSummary from '@mui/material/AccordionSummary';
 import { NameTypography, ShortHelpTypography, ShortHelpPlaceHolderTypography, LongHelpTypography, StableTypography, PreviewTypography, ExperimentalTypography, SubtitleTypography, CardTitleTypography } from './WSEditorTheme';
 import DoDisturbOnRoundedIcon from '@mui/icons-material/DoDisturbOnRounded';
 import AddCircleRoundedIcon from '@mui/icons-material/AddCircleRounded';
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
+import DataObjectIcon from '@mui/icons-material/DataObject';
 import LabelIcon from '@mui/icons-material/Label';
 import WSEditorCommandArgumentsContent, { ClsArgDefinitionMap, CMDArg, DecodeArgs } from './WSEditorCommandArgumentsContent';
 import EditIcon from '@mui/icons-material/Edit';
@@ -26,6 +27,39 @@ interface Example {
     commands: string[],
 }
 
+interface ObjectOutput {
+    type: 'object',
+    ref: string,
+    clientFlatten: boolean,
+}
+
+interface ArrayOutput {
+    type: 'array',
+    ref: string,
+    clientFlatten: boolean,
+    nextLink: string,
+}
+
+interface StringOutput {
+    type: 'string',
+    ref: string,
+    value: string,
+}
+
+type Output = ObjectOutput | ArrayOutput | StringOutput;
+
+function isObjectOutput(output: Output): output is ObjectOutput {
+    return output.type === "object";
+}
+
+function isArrayOutput(output: Output): output is ArrayOutput {
+    return output.type === "array";
+}
+
+function isStringOutput(output: Output): output is StringOutput {
+    return output.type === "string";
+}
+
 interface Resource {
     id: string,
     version: string,
@@ -43,6 +77,7 @@ interface Command {
     stage: "Stable" | "Preview" | "Experimental"
     version: string
     examples?: Example[]
+    outputs?: Output[]
     resources: Resource[]
 
     // additional property
@@ -65,6 +100,7 @@ interface ResponseCommand {
     version: string,
     examples?: Example[],
     resources: Resource[],
+    outputs?: Output[],
     confirmation?: string,
     argGroups?: any[],
 }
@@ -84,12 +120,14 @@ interface WSEditorCommandContentState {
     command?: Command,
     displayCommandDialog: boolean,
     displayExampleDialog: boolean,
+    displayOutputDialog: boolean,
     displayCommandDeleteDialog: boolean,
     displayAddSubcommandDialog: boolean,
     subcommandDefaultGroupNames?: string[],
     subcommandArgVar?: string,
     subcommandSubArgOptions?: { var: string, options: string }[],
     exampleIdx?: number,
+    outputIdx?: number,
     loading: boolean,
 }
 
@@ -128,6 +166,44 @@ const ExampleAccordionSummary = styled((props: AccordionSummaryProps) => (
     },
 }));
 
+const OutputTypeTypography = styled(Typography)<TypographyProps>(({ theme }) => ({
+    color: theme.palette.primary.main,
+    fontFamily: "'Work Sans', sans-serif",
+    fontSize: 10,
+    fontWeight: 400,
+}))
+
+const OutputRefTypography = styled(Typography)<TypographyProps>(({ theme }) => ({
+    color: theme.palette.primary.main,
+    fontFamily: "'Roboto Condensed', sans-serif",
+    fontSize: 16,
+    fontWeight: 700,
+}))
+
+const OutputFlagTypography = styled(Typography)<TypographyProps>(({ theme }) => ({
+    color: '#8888C3',
+    fontFamily: "'Work Sans', sans-serif",
+    fontSize: 10,
+    fontWeight: 400,
+}))
+
+const OutputEditTypography = styled(Typography)<TypographyProps>(({ theme }) => ({
+    color: "#5d64cf",
+    fontFamily: "'Work Sans', sans-serif",
+    fontSize: 14,
+    fontWeight: 400,
+}));
+
+const OutputDialogLabel = styled(FormLabel)<FormLabelProps>(({ theme }) => ({
+    fontSize: 12,
+}));
+
+const OutputDialogMainTypography = styled(Typography)<TypographyProps>(({ theme }) => ({
+    color: theme.palette.primary.main,
+    fontFamily: "'Work Sans', sans-serif",
+    fontSize: 18,
+    fontWeight: 400,
+}));
 
 class WSEditorCommandContent extends React.Component<WSEditorCommandContentProps, WSEditorCommandContentState> {
 
@@ -137,6 +213,7 @@ class WSEditorCommandContent extends React.Component<WSEditorCommandContentProps
             command: undefined,
             displayCommandDialog: false,
             displayExampleDialog: false,
+            displayOutputDialog: false,
             displayCommandDeleteDialog: false,
             displayAddSubcommandDialog: false,
             loading: false,
@@ -223,6 +300,22 @@ class WSEditorCommandContent extends React.Component<WSEditorCommandContentProps
         })
     }
 
+    onOutputDialogDisplay = (idx?: number) => {
+        this.setState({
+            displayOutputDialog: true,
+            outputIdx: idx,
+        })
+    }
+
+    handleOutputDialogClose = (newCommand?: Command) => {
+        if (newCommand) {
+            this.props.onUpdateCommand(newCommand!);
+        }
+        this.setState({
+            displayOutputDialog: false,
+        })
+    }
+
     onAddSubcommandDialogDisplay = (argVar: string, subArgOptions: { var: string, options: string }[], argStackNames: string[]) => {
         this.setState({
             displayAddSubcommandDialog: true,
@@ -249,7 +342,7 @@ class WSEditorCommandContent extends React.Component<WSEditorCommandContentProps
         const name = commandPrefix + commandNames.join(' ');
         const commandUrl = `${workspaceUrl}/CommandTree/Nodes/aaz/` + commandNames.slice(0, -1).join('/') + '/Leaves/' + commandNames[commandNames.length - 1];
 
-        const { command, displayCommandDialog, displayExampleDialog, displayCommandDeleteDialog, displayAddSubcommandDialog, exampleIdx, loading } = this.state;
+        const { command, displayCommandDialog, displayExampleDialog, displayOutputDialog, displayCommandDeleteDialog, displayAddSubcommandDialog, exampleIdx, outputIdx, loading } = this.state;
 
         const buildExampleView = (example: Example, idx: number) => {
             const buildCommand = (exampleCommand: string, cmdIdx: number) => {
@@ -498,9 +591,11 @@ class WSEditorCommandContent extends React.Component<WSEditorCommandContentProps
                     {buildCommandCard()}
                     {command !== undefined && command.args !== undefined && buildArgumentsCard()}
                     {command !== undefined && buildExampleCard()}
+                    {command !== undefined && command.outputs !== undefined && <OutputCard command={command} onOutputDialogDisplay={this.onOutputDialogDisplay}/>}
                 </Box>
                 {command !== undefined && displayCommandDialog && <CommandDialog open={displayCommandDialog} workspaceUrl={workspaceUrl} command={command!} onClose={this.handleCommandDialogClose} />}
                 {command !== undefined && displayExampleDialog && <ExampleDialog open={displayExampleDialog} workspaceUrl={workspaceUrl} command={command!} idx={exampleIdx} onClose={this.handleExampleDialogClose} />}
+                {command !== undefined && displayOutputDialog && <OutputDialog open={displayOutputDialog} workspaceUrl={workspaceUrl} command={command!} idx={outputIdx} onClose={this.handleOutputDialogClose} />}
                 {command !== undefined && displayCommandDeleteDialog && <CommandDeleteDialog open={displayCommandDeleteDialog} workspaceUrl={workspaceUrl} command={command!} onClose={this.handleCommandDeleteDialogClose} />}
                 {command !== undefined && displayAddSubcommandDialog && <AddSubcommandDialog open={displayAddSubcommandDialog} workspaceUrl={workspaceUrl} command={command!} onClose={this.handleAddSubcommandDisplayClose} argVar={this.state.subcommandArgVar!} subArgOptions={this.state.subcommandSubArgOptions!} defaultGroupNames={this.state.subcommandDefaultGroupNames!} />}
             </React.Fragment>
@@ -1162,14 +1257,14 @@ class ExampleDialog extends React.Component<ExampleDialogProps, ExampleDialogSta
             >
                 <DialogTitle>
                     {isAdd ? "Add Example" : "Modify Example"}
-                    <IconButton style={{ position: "absolute", right: 16, top: 8}} edge="end" color="inherit" onClick={this.handleClose} aria-label="close">
+                    <IconButton style={{ position: "absolute", right: 16, top: 8 }} edge="end" color="inherit" onClick={this.handleClose} aria-label="close">
                         <CloseIcon />
                     </IconButton>
                 </DialogTitle>
                 <DialogContent dividers={true}>
                     {isAdd && source === undefined &&
                         <Stack direction="column" spacing={2}>
-                            <Button variant='contained' size="large" color='secondary' sx={{ fontSize: '20px', padding: '10px 20px' }} onClick={() => {this.loadSwaggerExamples()}}>
+                            <Button variant='contained' size="large" color='secondary' sx={{ fontSize: '20px', padding: '10px 20px' }} onClick={() => { this.loadSwaggerExamples() }}>
                                 <Typography variant='body2'>By OpenAPI Specification</Typography>
                             </Button>
                             {/* <Button variant='outlined' size="large" color='secondary' sx={{ fontSize: '20px', padding: '10px 20px' }} disabled>
@@ -1202,7 +1297,7 @@ class ExampleDialog extends React.Component<ExampleDialogProps, ExampleDialogSta
                                     />
                                 </React.Fragment>
                             }
-                            {source === "swagger" && 
+                            {source === "swagger" &&
                                 <React.Fragment>
                                     <ExampleItemSelector
                                         name="Name"
@@ -1236,20 +1331,20 @@ class ExampleDialog extends React.Component<ExampleDialogProps, ExampleDialogSta
                     }
                 </DialogContent>
                 {(!isAdd || source != undefined) &&
-                <DialogActions>
-                    {updating &&
-                        <Box sx={{ width: '100%' }}>
-                            <LinearProgress color='secondary' />
-                        </Box>
-                    }
-                    {!updating && <React.Fragment>
-                        {!isAdd && <React.Fragment>
-                            <Button onClick={this.handleDelete}>Delete</Button>
-                            <Button onClick={this.handleModify}>Save</Button>
+                    <DialogActions>
+                        {updating &&
+                            <Box sx={{ width: '100%' }}>
+                                <LinearProgress color='secondary' />
+                            </Box>
+                        }
+                        {!updating && <React.Fragment>
+                            {!isAdd && <React.Fragment>
+                                <Button onClick={this.handleDelete}>Delete</Button>
+                                <Button onClick={this.handleModify}>Save</Button>
+                            </React.Fragment>}
+                            {isAdd && <Button onClick={this.handleAdd}>Add</Button>}
                         </React.Fragment>}
-                        {isAdd && <Button onClick={this.handleAdd}>Add</Button>}
-                    </React.Fragment>}
-                </DialogActions>}
+                    </DialogActions>}
             </Dialog>
         )
     }
@@ -1423,6 +1518,243 @@ function AddSubcommandDialog(props: {
     </Dialog>)
 }
 
+function OutputCard(props: {
+    command: Command,
+    onOutputDialogDisplay: (idx: number) => void
+}) {
+    const outputs = props.command!.outputs!
+
+    const buildBaseOutputView = (idx: number, refName: string, type: string, flags: string[],
+        onClick?: React.MouseEventHandler<HTMLButtonElement> | undefined) => {
+        return (<Box sx={{ my: 1 }}>
+            <Box sx={{
+                p: 2,
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+            }}>
+                <DataObjectIcon fontSize='small'/><SubtitleTypography sx={{ml: 1}}>JSON</SubtitleTypography>
+                <Button sx={{ flexShrink: 0, ml: 3 }}
+                    startIcon={<EditIcon color="secondary" fontSize='small' />}
+                    onClick={onClick}
+                >
+                    <OutputEditTypography>Edit</OutputEditTypography>
+                </Button>
+            </Box>
+            <Box
+                key={`output-${idx}-${refName}`}
+                sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "stretch",
+                    justifyContent: "flex-start",
+                    mb: 2,
+                    ml: 6
+                }}>
+                <Box>
+                    <ButtonBase onClick={onClick}>
+                        <OutputRefTypography>{refName}</OutputRefTypography>
+                    </ButtonBase>
+                </Box>
+                <Box sx={{
+                    display: "flex",
+                    flexDirection: "row",
+                    alignItems: "flex-start",
+                    justifyContent: "flex-start"
+                }}>
+                    <Box sx={{
+                        width: 300,
+                        flexShrink: 0,
+                        flexDirection: "row",
+                        display: "flex",
+                        alignItems: "center",
+                    }}>
+                        <OutputTypeTypography sx={{
+                            flexShrink: 0,
+                        }}>{`/${type}/`}</OutputTypeTypography>
+                        <Box sx={{ flexGrow: 1 }} />
+                        {flags.map((flag, idx) => {
+                            return <OutputFlagTypography key={`output-flag-${idx}`}>{`[${flag}]`}</OutputFlagTypography>
+                        })}
+                    </Box>
+                </Box>
+            </Box>
+        </Box>)
+    }
+
+    const buildObjectOutputView = (output: ObjectOutput, idx: number,
+        onClick?: React.MouseEventHandler<HTMLButtonElement> | undefined) => {
+        return buildBaseOutputView(
+            idx,
+            output.ref,
+            output.type,
+            output.clientFlatten ? ['Flattened'] : ['Unflattened'],
+            onClick)
+    }
+
+    const buildArrayOutputView = (output: ArrayOutput, idx: number,
+        onClick?: React.MouseEventHandler<HTMLButtonElement> | undefined) => {
+        return buildBaseOutputView(
+            idx,
+            output.ref,
+            output.type,
+            output.clientFlatten ? ['Flattened'] : ['Unflattened'],
+            onClick)
+    }
+
+    const buildStringOutputView = (output: StringOutput, idx: number,
+        onClick?: React.MouseEventHandler<HTMLButtonElement> | undefined) => {
+        const title = output.ref ? output.ref : output.value;
+        return buildBaseOutputView(
+            idx,
+            title,
+            output.type,
+            [],
+            onClick)
+    }
+
+    const buildOutputView = (output: Output, idx: number) => {
+        const onClick = () => {
+            props.onOutputDialogDisplay(idx);
+        }
+        switch (output.type) {
+            case "object":
+                return buildObjectOutputView(output, idx, onClick);
+            case "array":
+                return buildArrayOutputView(output, idx, onClick);
+            case "string":
+                return buildStringOutputView(output, idx, onClick);
+        }
+    }
+
+    return (<Card
+        elevation={3}
+        sx={{
+            flexGrow: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            mt: 1,
+            p: 2
+        }}>
+
+        <CardContent sx={{
+            flex: '1 0 auto',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'stretch',
+        }}>
+            <Box sx={{
+                mb: 2,
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+            }}>
+                <CardTitleTypography sx={{ flexShrink: 0 }}>
+                    [ OUTPUT ]
+                </CardTitleTypography>
+
+            </Box>
+            {outputs.length > 0 && outputs.map(buildOutputView)}
+        </CardContent>
+
+    </Card>)
+}
+
+function OutputDialog(props: {
+    workspaceUrl: string,
+    command: Command,
+    idx?: number,
+    open: boolean,
+    onClose: (newCommand?: Command) => void,
+}) {
+    const [updating, setUpdating] = useState<boolean>(false);
+    const [invalidText, setInvalidText] = useState<string | undefined>(undefined);
+    const outputs = props.command.outputs ?? []
+    const output = outputs[props.idx!]
+    const [flatten, setFlatten] = useState<boolean>(output.type !== 'string' ? output.clientFlatten : false);
+    const flattenLabelContent = flatten? 'Flattened': 'Unflattened';
+
+    const handleClose = () => {
+        setInvalidText(undefined);
+        props.onClose();
+    }
+
+    const handleUpdateOutput = () => {
+        setInvalidText(undefined);
+        setUpdating(true);
+        
+        if (isObjectOutput(output) || isArrayOutput(output)) {
+            let commandNames = props.command.names;
+            const leafUrl = `${props.workspaceUrl}/CommandTree/Nodes/aaz/` + commandNames.slice(0, -1).join('/') + '/Leaves/' + commandNames[commandNames.length - 1];
+            console.log("Original clientFlatten: ");
+            console.log(output.clientFlatten);
+            output.clientFlatten = !output.clientFlatten;
+            console.log("New clientFlatten: ");
+            console.log(output.clientFlatten);
+
+            axios.patch(leafUrl, {
+                outputs: outputs
+            }).then(res => {
+                const cmd = DecodeResponseCommand(res.data);
+                setUpdating(false);
+                props.onClose(cmd);
+            }).catch(err => {
+                console.error(err.response);
+                if (err.response?.data?.message) {
+                    const data = err.response!.data!;
+                    setInvalidText(`ResponseError: ${data.message!}: ${JSON.stringify(data.details)}`);
+                }
+                setUpdating(false);
+            });
+        } else {
+            console.error(`Invalid output type for flatten switch: ${output.type}`);
+            setInvalidText(`Invalid output type for flatten switch: ${output.type}`);
+        }
+    }
+
+    return (<Dialog
+        disableEscapeKeyDown
+        open={props.open}
+        sx={{ '& .MuiDialog-paper': { width: '80%' } }}
+    >
+        <DialogTitle>JSON Format Output</DialogTitle>
+        <DialogContent dividers={true}>
+            {invalidText && <Alert variant="filled" severity='error'> {invalidText} </Alert>}
+            {(output.type !== 'string' || output.ref !== undefined) && <React.Fragment>
+                <OutputDialogLabel>Output Reference</OutputDialogLabel>
+                <OutputDialogMainTypography sx={{ my: 1 }}>{output.ref}</OutputDialogMainTypography></React.Fragment>
+            }
+            {(output.type == 'string' && output.ref == undefined) && <React.Fragment>
+                <OutputDialogLabel>Output Value</OutputDialogLabel>
+                <OutputDialogMainTypography sx={{ my: 1 }}>{output.value}</OutputDialogMainTypography></React.Fragment>
+            }
+            {(output.type == 'array' && output.nextLink !== undefined) && <React.Fragment>
+                <OutputDialogLabel>Next Link Reference</OutputDialogLabel>
+                <OutputDialogMainTypography sx={{ my: 1 }}>{output.nextLink}</OutputDialogMainTypography></React.Fragment>
+            }
+            {(output.type !== 'string' || output.ref !== undefined) && <React.Fragment>
+                <OutputDialogLabel>Client Flatten</OutputDialogLabel>
+                <Box sx={{display: 'flex'}}><FormControlLabel sx={{ ml: 2 }} control={<Switch
+                    checked={flatten}
+                    onChange={(event: any) => {
+                        setFlatten(event.target.checked)
+                    }}
+                />} label={<OutputDialogMainTypography sx={{mx: 2}}>{flattenLabelContent}</OutputDialogMainTypography>} labelPlacement="end"/></Box></React.Fragment>
+            }
+        </DialogContent>
+        <DialogActions>
+            {updating &&
+                <Box sx={{ width: '100%' }}>
+                    <LinearProgress color='secondary' />
+                </Box>
+            }
+            {!updating &&
+                <Button onClick={handleClose}>Cancel</Button>}
+                <Button onClick={handleUpdateOutput}>Update</Button>
+        </DialogActions>
+    </Dialog>)
+}
+
 const DecodeResponseCommand = (command: ResponseCommand): Command => {
     let cmd: Command = {
         id: 'command:' + command.names.join('/'),
@@ -1430,6 +1762,7 @@ const DecodeResponseCommand = (command: ResponseCommand): Command => {
         help: command.help,
         stage: command.stage ?? "Stable",
         examples: command.examples,
+        outputs: command.outputs,
         resources: command.resources,
         version: command.version,
     }
