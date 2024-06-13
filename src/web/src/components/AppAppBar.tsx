@@ -3,6 +3,9 @@ import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
 import { AppBar, Toolbar } from '@mui/material';
 import theme from '../theme';
+import Button from '@mui/material/Button';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
 
 
 
@@ -10,10 +13,29 @@ type AppAppBarProps = {
     pageName: string | null,
 };
 
+type AppAppBarState = {
+    anchorEl: null | HTMLElement,
+};
 
-class AppAppBar extends React.Component<AppAppBarProps> {
+
+class AppAppBar extends React.Component<AppAppBarProps, AppAppBarState> {
+    constructor(props: AppAppBarProps) {
+      super(props);
+      this.state = {
+        anchorEl: null,
+      };
+    }
+
+    handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+      this.setState({ anchorEl: event.currentTarget });
+    };
+
+    handleMenuClose = () => {
+      this.setState({ anchorEl: null });
+    };
 
     render() {
+        const { anchorEl } = this.state;
 
         return (
             <div>
@@ -78,28 +100,40 @@ class AppAppBar extends React.Component<AppAppBarProps> {
                         </Link>
                         </Box>
                         
-                        <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
-                            <Link
-                                color="inherit"
-                                variant="h6"
-                                underline="none"
-                                href="https://azure.github.io/aaz-dev-tools/"
-                                rel="noreferrer"
-                                target="_blank"
-                                fontWeight={
-                                    this.props.pageName === "Documents" ?
-                                    theme.typography.fontWeightMedium : 
-                                    theme.typography.fontWeightLight
-                                }
-                                sx={{
-                                    fontSize: 16,
-                                    color: 'common.white',
-                                    ml: 3,
-                                }}
-                            >
-                                {'Docs'}
-                            </Link>
-                        </Box>
+                        <Button
+                          color="inherit"
+                          sx={{ 
+                            fontSize: '18px', 
+                            fontFamily: 'Roboto Condensed, sans-serif'
+                          }}
+                          onClick={this.handleMenuOpen}
+                        >
+                          Help
+                        </Button>
+                        <Menu
+                          anchorEl={anchorEl}
+                          open={Boolean(anchorEl)}
+                          onClose={this.handleMenuClose}
+                        >
+                          <MenuItem
+                            onClick={this.handleMenuClose}
+                            component="a"
+                            href="https://azure.github.io/aaz-dev-tools/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Document
+                          </MenuItem>
+                          <MenuItem 
+                            onClick={this.handleMenuClose}
+                            component="a"
+                            href="https://forms.office.com/r/j6rQuFUqUf?origin=lprLink"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Send a Feedback
+                          </MenuItem>
+                        </Menu>
                     </Toolbar>
                 </AppBar>
             </div>
