@@ -1526,19 +1526,14 @@ function OutputCard(props: {
 
     const buildBaseOutputView = (idx: number, refName: string, type: string, flags: string[],
         onClick?: React.MouseEventHandler<HTMLButtonElement> | undefined) => {
-        return (<Box
-            key={`output-${idx}-${refName}`}
-            sx={{
+        return (<Box sx={{ my: 1 }}>
+            <Box sx={{
+                p: 2,
                 display: "flex",
-                flexDirection: "column",
-                alignItems: "stretch",
-                justifyContent: "flex-start",
-                mb: 2
+                flexDirection: "row",
+                alignItems: "center",
             }}>
-            <Box>
-                <ButtonBase onClick={onClick}>
-                    <OutputRefTypography>{refName}</OutputRefTypography>
-                </ButtonBase>
+                <DataObjectIcon fontSize='small'/><SubtitleTypography sx={{ml: 1}}>JSON</SubtitleTypography>
                 <Button sx={{ flexShrink: 0, ml: 3 }}
                     startIcon={<EditIcon color="secondary" fontSize='small' />}
                     onClick={onClick}
@@ -1546,26 +1541,42 @@ function OutputCard(props: {
                     <OutputEditTypography>Edit</OutputEditTypography>
                 </Button>
             </Box>
-            <Box sx={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "flex-start",
-                justifyContent: "flex-start"
-            }}>
-                <Box sx={{
-                    width: 300,
-                    flexShrink: 0,
-                    flexDirection: "row",
+            <Box
+                key={`output-${idx}-${refName}`}
+                sx={{
                     display: "flex",
-                    alignItems: "center",
+                    flexDirection: "column",
+                    alignItems: "stretch",
+                    justifyContent: "flex-start",
+                    mb: 2,
+                    ml: 6
                 }}>
-                    <OutputTypeTypography sx={{
+                <Box>
+                    <ButtonBase onClick={onClick}>
+                        <OutputRefTypography>{refName}</OutputRefTypography>
+                    </ButtonBase>
+                </Box>
+                <Box sx={{
+                    display: "flex",
+                    flexDirection: "row",
+                    alignItems: "flex-start",
+                    justifyContent: "flex-start"
+                }}>
+                    <Box sx={{
+                        width: 300,
                         flexShrink: 0,
-                    }}>{`/${type}/`}</OutputTypeTypography>
-                    <Box sx={{ flexGrow: 1 }} />
-                    {flags.map((flag, idx) => {
-                        return <OutputFlagTypography key={`output-flag-${idx}`}>{`[${flag}]`}</OutputFlagTypography>
-                    })}
+                        flexDirection: "row",
+                        display: "flex",
+                        alignItems: "center",
+                    }}>
+                        <OutputTypeTypography sx={{
+                            flexShrink: 0,
+                        }}>{`/${type}/`}</OutputTypeTypography>
+                        <Box sx={{ flexGrow: 1 }} />
+                        {flags.map((flag, idx) => {
+                            return <OutputFlagTypography key={`output-flag-${idx}`}>{`[${flag}]`}</OutputFlagTypography>
+                        })}
+                    </Box>
                 </Box>
             </Box>
         </Box>)
@@ -1643,19 +1654,7 @@ function OutputCard(props: {
                 </CardTitleTypography>
 
             </Box>
-            {outputs.length > 0 && <Box sx={{ my: 1 }}>
-                <Box sx={{
-                    p: 2,
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "center",
-                }}>
-                    <DataObjectIcon fontSize='small'/><SubtitleTypography sx={{ml: 1}}>JSON</SubtitleTypography>
-                </Box>
-                <Box sx={{ ml: 5, display: "flex", flexDirection: "column" }}>
-                    {outputs.map(buildOutputView)}
-                </Box>
-            </Box>}
+            {outputs.length > 0 && outputs.map(buildOutputView)}
         </CardContent>
 
     </Card>)
