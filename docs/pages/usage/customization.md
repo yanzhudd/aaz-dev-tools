@@ -222,10 +222,16 @@ class FOO(_FOO):
 ```
 
 ## How to show a secret property in the output?
-The hide of secret properties in output is by design, but we still support to show them through rewriting `_output` method:
+The hide of secret properties in output is by design, but we still support to display them through rewriting `_output` method:
 ```python
 def _output(self, *args, **kwargs):
     result = self.deserialize_output(self.ctx.vars.instance, client_flatten=True, secret_hidden=False)
 
     return result
 ```
+
+## How to elegantly remove the generated codes?
+We can achieve that on the CLI page, check [the details](https://azure.github.io/aaz-dev-tools/pages/usage/cli-generator/#remove-commands). Some [other documents](https://azure.github.io/aaz-dev-tools/pages/usage/cli-generator/#pick-commands) are also helpful to understand the interation logic of codegen UI.
+
+## Is _null_ automatically ignored in the output of the codegen commands?
+Yes, it's by design, and we need to be consistent with the definition in the OpenAPI specification. 
