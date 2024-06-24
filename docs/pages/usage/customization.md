@@ -231,7 +231,7 @@ def _output(self, *args, **kwargs):
 ```
 
 ## How to elegantly remove the generated codes?
-We can achieve that on the CLI page, check [the details](https://azure.github.io/aaz-dev-tools/pages/usage/cli-generator/#remove-commands). Some [other documents](https://azure.github.io/aaz-dev-tools/pages/usage/cli-generator/#pick-commands) are also helpful to understand the interation logic of codegen UI.
+We can achieve that on the CLI page, please check [the details](https://azure.github.io/aaz-dev-tools/pages/usage/cli-generator/#remove-commands). Some [other documents](https://azure.github.io/aaz-dev-tools/pages/usage/cli-generator/#pick-commands) are also helpful to understand the interation logic of the codegen UI.
 
 ## Is _null_ automatically ignored in the output of the codegen commands?
 Yes, it's by design, and we need to be consistent with the definition in the OpenAPI specification. 
