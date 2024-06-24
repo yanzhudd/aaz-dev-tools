@@ -76,9 +76,13 @@ For better understanding, you can firstly go through the above two examples. BTW
 
 ## How many callback actions are there in the codegen framework?
 There are eight callback actions in total:
-- For normal commands we have `pre_operations` and `post_operations`.
-- For update commands we have two more callback actions: `pre_instance_update` and `post_instance_update`.
-- For subcommands, there are four additional ones: `pre_instance_create`, `post_instance_create`, `pre_instance_delete` and `post_instance_delete`.
+- For normal commands we have `pre_operations` and `post_operations`:
+  - pre_operations: Usually used to implement some validation logic, which will be described in detail below.
+  - post_operations: Not commonly used, but can be used to output logs when the operation is completed.
+- For update commands we have two more callback actions: `pre_instance_update` and `post_instance_update`:
+  - pre_instance_update: Usually used to add some complicated customized logic to the instance.
+  - post_instance_update: Usually used to clean up the redundant properties, which will be described in detail below.
+- For subcommands, there are four additional ones: `pre_instance_create`, `post_instance_create`, `pre_instance_delete` and `post_instance_delete`. Their functionalities are similar to the instance-related callback actions within the update command.
 
 ## How to add validation to your commands?
 You can leverage our inheritance solution, i.e., inherit the generated class in _custom.py_ file and overwrite its `pre_operations` method:
@@ -141,7 +145,7 @@ def _output(self, *args, **kwargs):
 ```
 
 ## How to support cross-subscription or cross-tenant?
-It can be easily implemented by codegen framework, just declare the format of a parameter via template:
+It can be easily implemented by codegen framework, just declare the format of a parameter via `AAZResourceIdArgFormat` which will handle the cross-subscription/tenant ID from the argument. The template will auto complete the ID value from the placeholder names:
 ```python
 @classmethod
 def _build_arguments_schema(cls, *args, **kwargs):
@@ -156,7 +160,7 @@ def _build_arguments_schema(cls, *args, **kwargs):
 ```
 
 ## How to hide a command or a parameter to the users (only used for implementation)?
-To hide a command, you can unregister a command in the CLI page; To hide a parameter:
+To hide a command, you can [unregister a command](https://azure.github.io/aaz-dev-tools/pages/usage/cli-generator/#unregistered-commands) in the CLI page; To hide a parameter:
 ```python
 @classmethod
 def _build_arguments_schema(cls, *args, **kwargs):
@@ -176,47 +180,49 @@ def _build_arguments_schema(cls, *args, **kwargs):
 ```
 
 ## How to achieve a long-running operation based on codegen?
-It is similar as previous manual solution:
+This kind of logic is often added to the custom function in _custom.py_:
 ```python
-from azure.cli.core.commands import LongRunningOperation
-
-poller = VNetSubnetCreate(cli_ctx=self.cli_ctx)(command_args={
-    "name": subnet_name,
-    "vnet_name": metadata["name"],
-    "resource_group": metadata["resource_group"],
-    "address_prefix": args.subnet_prefix,
-    "private_link_service_network_policies": "Disabled"
-})
-
-LongRunningOperation(self.cli_ctx)(poller)
+def foo():
+    from azure.cli.core.commands import LongRunningOperation
+    
+    poller = VNetSubnetCreate(cli_ctx=self.cli_ctx)(command_args={
+        "name": subnet_name,
+        "vnet_name": metadata["name"],
+        "resource_group": metadata["resource_group"],
+        "address_prefix": args.subnet_prefix,
+        "private_link_service_network_policies": "Disabled"
+    })
+    
+    LongRunningOperation(self.cli_ctx)(poller)
 ```
 
 ## How to declare a file type argument?
-It is nothing special, similar as others:
+It is nothing special, similar as other types of parameters:
 ```python
-@classmethod
-def _build_arguments_schema(cls, *args, **kwargs):
-    from azure.cli.core.aaz import AAZFileArg, AAZFileArgBase64EncodeFormat
-
-    args_schema = super()._build_arguments_schema(*args, **kwargs)
-    args_schema.cert_file = AAZFileArg(
-        options=["--cert-file"],
-        help="Path to the pfx certificate file.",
-        fmt=AAZFileArgBase64EncodeFormat(),
-        nullable=True,  # commonly used in update command
-    )
-    args_schema.data._registered = False
-
-    return args_schema
-
-def pre_operations(self):
-    args = self.ctx.args
-    if has_value(args.cert_file):
-        args.data = args.cert_file
+class FOO(_FOO):
+    @classmethod
+    def _build_arguments_schema(cls, *args, **kwargs):
+        from azure.cli.core.aaz import AAZFileArg, AAZFileArgBase64EncodeFormat
+    
+        args_schema = super()._build_arguments_schema(*args, **kwargs)
+        args_schema.cert_file = AAZFileArg(
+            options=["--cert-file"],
+            help="Path to the pfx certificate file.",
+            fmt=AAZFileArgBase64EncodeFormat(),
+            nullable=True,  # commonly used in update command
+        )
+        args_schema.data._registered = False
+    
+        return args_schema
+    
+    def pre_operations(self):
+        args = self.ctx.args
+        if has_value(args.cert_file):
+            args.data = args.cert_file
 ```
 
 ## How to show a secret property in the output?
-The hidden of secret properties in output is by design, but we still support to show that:
+The hide of secret properties in output is by design, but we still support to show them through rewriting `_output` method:
 ```python
 def _output(self, *args, **kwargs):
     result = self.deserialize_output(self.ctx.vars.instance, client_flatten=True, secret_hidden=False)
