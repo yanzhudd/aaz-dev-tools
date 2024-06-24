@@ -67,7 +67,6 @@ Normally, there are two ways to do customization:
     ```python
     def load_command_table(self, _):
         with self.command_group("network application-gateway identity") as g:
-            from .custom import IdentityAssign
             g.custom_command("remove", "remove_ag_identity", supports_no_wait=True)
     ```
 
