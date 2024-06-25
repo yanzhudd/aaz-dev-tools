@@ -182,10 +182,10 @@ def _build_arguments_schema(cls, *args, **kwargs):
 ## How to achieve a long-running operation based on codegen?
 This kind of logic is often added to the custom function in _custom.py_:
 ```python
-def foo():
+def foo(cli_ctx):
     from azure.cli.core.commands import LongRunningOperation
     
-    poller = VNetSubnetCreate(cli_ctx=self.cli_ctx)(command_args={
+    poller = VNetSubnetCreate(cli_ctx=cli_ctx)(command_args={
         "name": subnet_name,
         "vnet_name": metadata["name"],
         "resource_group": metadata["resource_group"],
@@ -193,7 +193,7 @@ def foo():
         "private_link_service_network_policies": "Disabled"
     })
     
-    LongRunningOperation(self.cli_ctx)(poller)
+    LongRunningOperation(cli_ctx)(poller)
 ```
 
 ## How to declare a file type argument?
