@@ -397,6 +397,11 @@ class CMDClsSchemaBase(CMDSchemaBase):
             raise NotImplementedError()
         data = {k: v for k, v in self.implement.to_native().items() if k in cls._schema.valid_input_keys}
         data.update(kwargs)
+        # uninherent read_only
+        uninherent = {
+            "read_only": self.read_only,
+        }
+        data.update(uninherent)
         unwrapped = cls(data)
         return unwrapped
 
@@ -879,6 +884,7 @@ class CMDObjectSchemaBase(CMDSchemaBase):
     #  - description
     #  - skip_url_encoding
     #  - client_flatten
+    #  - read_only
     cls = CMDClassField()
 
     def _diff_base(self, old, level, diff):
@@ -993,6 +999,7 @@ class CMDArraySchemaBase(CMDSchemaBase):
     #  - required
     #  - description
     #  - skip_url_encoding
+    #  - read_only
     cls = CMDClassField()
 
     def _get_type(self):

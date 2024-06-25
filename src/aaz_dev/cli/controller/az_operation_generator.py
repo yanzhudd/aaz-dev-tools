@@ -940,23 +940,23 @@ def render_schema(schema, cls_map, name):
 
 
 def render_schema_base(schema, cls_map, schema_kwargs=None):
+    if schema_kwargs is None:
+        schema_kwargs = {}
+    
+    flags = schema_kwargs.get('flags', {})
+    # read_only is not inherited by class schema, so we need to set it here
+    if schema.read_only:
+        flags['read_only'] = True
+
     if isinstance(schema, CMDClsSchemaBase):
         cls_name = schema.type[1:]
         schema = cls_map[cls_name].schema
     else:
         cls_name = getattr(schema, 'cls', None)
     cls_builder_name = parse_cls_builder_name(cls_name) if cls_name else None
-
-    if schema_kwargs is None:
-        schema_kwargs = {}
-
+   
     if schema.nullable:
         schema_kwargs['nullable'] = True
-
-    flags = schema_kwargs.get('flags', {})
-
-    if schema.read_only:
-        flags['read_only'] = True
 
     if isinstance(schema, CMDStringSchemaBase):
         schema_type = "AAZStrType"
