@@ -112,7 +112,7 @@ As our code generation is written in Python, the output can be easily modified:
 ```python
 from .aaz.latest.network.lb import Update
 
-def foo():
+def foo(cmd):
     result = Update(cli_ctx=cmd.cli_ctx)(command_args={
         "name": load_balancer_name,
         "resource_group": resource_group_name,
