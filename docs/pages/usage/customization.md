@@ -40,6 +40,8 @@ Normally, there are two ways to do customization:
                 element_transformer=server_trans
             )
     ```
+    > For more details, please visit [GitHub](https://github.com/Azure/azure-cli/blob/1d5f9d5ebd3595f32212ec7ea4309267a288b9eb/src/azure-cli/azure/cli/command_modules/network/custom.py#L413-L440).
+
     After that, please don't forget to add your customized command to our command table in _commands.py_:
     ```python
     def load_command_table(self, _):
@@ -47,6 +49,7 @@ Normally, there are two ways to do customization:
             from .custom import AddressPoolCreate, AddressPoolUpdate
             self.command_table["network application-gateway address-pool create"] = AddressPoolCreate(loader=self)
     ```
+    > For more details, please visit [GitHub](https://github.com/Azure/azure-cli/blob/1d5f9d5ebd3595f32212ec7ea4309267a288b9eb/src/azure-cli/azure/cli/command_modules/network/commands.py#L54-L57).
 - Wrapper: Call aaz commands within previous implementation. E.g.,
     ```python
     def remove_ag_identity(cmd, resource_group_name, application_gateway_name, no_wait=False):
@@ -63,12 +66,15 @@ Normally, there are two ways to do customization:
             "resource_group": resource_group_name
         })
     ```
+    > For more details, please visit [GitHub](https://github.com/Azure/azure-cli/blob/1d5f9d5ebd3595f32212ec7ea4309267a288b9eb/src/azure-cli/azure/cli/command_modules/network/custom.py#L737-L749).
+      
     After that, please don't forget to add your customized command to our command table in _commands.py_:
     ```python
     def load_command_table(self, _):
         with self.command_group("network application-gateway identity") as g:
             g.custom_command("remove", "remove_ag_identity", supports_no_wait=True)
     ```
+    > For more details, please visit [GitHub](https://github.com/Azure/azure-cli/blob/dev/src/azure-cli/azure/cli/command_modules/network/commands.py#L99-L102).
 
 We always prefer to the inheritance way, which is more elegant and easier to maintain. Unless you wanna reuse previous huge complicated logic or features that aaz-dev hasn't touched, we can consider the wrapper way (probably happens when migrating to aaz-dev).
 
@@ -96,6 +102,7 @@ class URLPathMapRuleCreate(_URLPathMapRuleCreate):
             err_msg = "Cannot reference a BackendAddressPool when Redirect Configuration is specified."
             raise ArgumentUsageError(err_msg)
 ```
+> For more details, please visit [GitHub](https://github.com/Azure/azure-cli/blob/1d5f9d5ebd3595f32212ec7ea4309267a288b9eb/src/azure-cli/azure/cli/command_modules/network/custom.py#L1808-L1841).
 
 ## How to clean up redundant properties?
 Usually, we can remove useless properties in `post_instance_update`:
@@ -106,6 +113,7 @@ def post_instance_update(self, instance):
     if not has_value(instance.properties.route_table.id):
         instance.properties.route_table = None
 ```
+> For more details, please visit [GitHub](https://github.com/Azure/azure-cli/blob/1d5f9d5ebd3595f32212ec7ea4309267a288b9eb/src/azure-cli/azure/cli/command_modules/network/custom.py#L5755-L5761).
 
 ## How to trim the output of a command?
 As our code generation is written in Python, the output can be easily modified:
@@ -143,6 +151,7 @@ def _output(self, *args, **kwargs):
     
     return result
 ```
+> For more details, please visit [GitHub](https://github.com/Azure/azure-cli/blob/1d5f9d5ebd3595f32212ec7ea4309267a288b9eb/src/azure-cli/azure/cli/command_modules/network/custom.py#L6393-L6409).
 
 ## How to support cross-subscription or cross-tenant?
 It can be easily implemented by codegen framework, just declare the format of a parameter via `AAZResourceIdArgFormat` which will handle the cross-subscription/tenant ID from the argument. The template will auto complete the ID value from the placeholder names:
@@ -195,6 +204,7 @@ def foo(cli_ctx):
     
     LongRunningOperation(cli_ctx)(poller)
 ```
+> For more details, please visit [GitHub](https://github.com/Azure/azure-cli/blob/1d5f9d5ebd3595f32212ec7ea4309267a288b9eb/src/azure-cli/azure/cli/command_modules/network/custom.py#L752-L858).
 
 ## How to declare a file type argument?
 It is nothing special, similar as other types of parameters:
@@ -220,6 +230,7 @@ class FOO(_FOO):
         if has_value(args.cert_file):
             args.data = args.cert_file
 ```
+> For more details, please visit [GitHub](https://github.com/Azure/azure-cli/blob/1d5f9d5ebd3595f32212ec7ea4309267a288b9eb/src/azure-cli/azure/cli/command_modules/network/custom.py#L392-L410).
 
 ## How to show a secret property in the output?
 The hide of secret properties in output is by design, but we still support to display them through rewriting `_output` method:
