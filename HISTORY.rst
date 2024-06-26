@@ -2,6 +2,11 @@
 
 Release History
 ===============
+2.9.0
+++++++
+* Support output flatten control in workspace editor (#368)
+* Fix read-only flag in generated code (#378) 
+
 2.8.0
 ++++++
 * Support enum extension (#366)
