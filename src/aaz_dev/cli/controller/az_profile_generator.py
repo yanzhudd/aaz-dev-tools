@@ -140,6 +140,7 @@ class AzProfileGenerator:
         tmpl = get_templates()['aaz']['command']['_cmd.py']
         client = self.profile.get_client(command)
         assert client is not None
+        self._update_managed_identity(command.cfg)
         try:
             data = tmpl.render(
                 leaf=AzCommandGenerator(command, client, is_wait=is_wait)
@@ -149,6 +150,9 @@ class AzProfileGenerator:
             raise err
         self._update_file(
             profile_folder_name, *self._command_group_folder_names(*command.names[:-1]), file_name, data=data)
+
+    def _update_managed_identity(self, command):
+
 
     def _generate_by_clients(self, profile_folder_name, clients):
         generator = AzClientsGenerator(clients)

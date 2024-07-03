@@ -484,6 +484,18 @@ class CfgReader:
                         arg_idx = cls.arg_idx_to_str(arg_idx)
                     yield parent, arg, arg_idx, arg_var
 
+    def find_managed_identity_in_command(self, command):
+        def arg_filter(_parent, _arg, _arg_idx, _arg_var):
+            if _arg.is_managed_identity:
+                return (_parent, _arg, _arg_idx, _arg_var), True
+
+            return None, False
+
+        if command.arg_groups:
+            for arg_group in command.arg_groups:
+                for parent, arg, arg_idx, arg_var in self._iter_args_in_group(arg_group, arg_filter=arg_filter):
+                    return parent, arg, arg_idx, arg_var
+
     def iter_args_in_command(self, command):
         def arg_filter(_parent, _arg, _arg_idx, _arg_var):
             return (_parent, _arg, _arg_idx, _arg_var), False
