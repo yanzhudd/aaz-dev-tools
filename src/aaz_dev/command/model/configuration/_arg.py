@@ -783,11 +783,16 @@ class CMDObjectArgBase(CMDArgBase):
 
 
 class CMDObjectArg(CMDObjectArgBase, CMDArg):
+    is_managed_identity = CMDBooleanField(
+        serialized_name='isManagedIdentity',
+        deserialize_from='isManagedIdentity'
+    )
 
     @classmethod
     def build_arg(cls, builder):
         arg = super().build_arg(builder)
         assert isinstance(arg, CMDObjectArg)
+        arg.is_managed_identity = builder.get_managed_identity_flag()
         return arg
 
     def _reformat(self, **kwargs):

@@ -9,6 +9,7 @@ from ._format import CMDFormat
 from ._schema import CMDObjectSchema, CMDSchema, CMDSchemaBase, CMDObjectSchemaBase, CMDObjectSchemaDiscriminator, \
     CMDArraySchemaBase, CMDObjectSchemaAdditionalProperties, CMDResourceIdSchema, CMDBooleanSchemaBase, \
     CMDResourceLocationSchemaBase, CMDPasswordSchema
+from ..configuration._schema import CMDIdentityObjectSchema, CMDIdentityObjectSchemaBase
 
 
 class CMDArgBuilder:
@@ -129,6 +130,11 @@ class CMDArgBuilder:
             return []
 
         arg = self._build_arg()
+
+        # from command.model.configuration import CMDIdentityObjectSchema, CMDIdentityObjectSchemaBase
+        # if isinstance(self.schema, CMDIdentityObjectSchema):
+        #     arg.is_managed_identity = True
+        # if isinstance(arg.schema, ):
         assert arg is not None
         if self._need_flatten():
             if isinstance(self.schema, CMDSchema):
@@ -145,6 +151,12 @@ class CMDArgBuilder:
             arg.ref_schema = self.schema
 
         return [arg, ]
+
+    def get_managed_identity_flag(self):
+        if self.schema and (isinstance(self.schema, CMDIdentityObjectSchema) or isinstance(self.schema, CMDIdentityObjectSchemaBase)):
+            return True
+
+        return False
 
     def get_sub_args(self):
         assert isinstance(self.schema, (CMDObjectSchemaBase, CMDObjectSchemaDiscriminator))
