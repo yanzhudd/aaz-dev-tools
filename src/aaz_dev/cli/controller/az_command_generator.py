@@ -1,6 +1,7 @@
 import logging
 
 from cli.model.atomic import CLIAtomicCommand, CLIAtomicClient
+from command.controller.cfg_reader import CfgReader
 from command.model.configuration import CMDCommand, CMDHttpOperation, CMDCondition, CMDConditionAndOperator, \
     CMDConditionOrOperator, CMDConditionNotOperator, CMDConditionHasValueOperator, CMDInstanceUpdateOperation, \
     CMDJsonInstanceUpdateAction, CMDJsonSubresourceSelector, CMDInstanceCreateOperation, \
@@ -44,6 +45,12 @@ class AzCommandGenerator:
             if isinstance(self.client.cfg.endpoints, CMDClientEndpointsByHttpOperation):
                 # disable id part if client using http operation to fetch dynamic endpoints
                 self.cmd_ctx.support_id_part = False
+
+        # add managed identity args
+        parent, arg, arg_idx, arg_var = CfgReader.find_managed_identity_in_command(self.cmd.cfg)
+        if arg:
+            pass
+            # self.arg_groups.append(AzArgGroupGenerator(self.ARGS_SCHEMA_NAME, self.cmd_ctx, arg_group))
 
         if self.cmd.cfg.arg_groups:
             for arg_group in self.cmd.cfg.arg_groups:

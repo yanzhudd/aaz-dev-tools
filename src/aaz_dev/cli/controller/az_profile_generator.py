@@ -1,6 +1,7 @@
 import os
 import shutil
 from cli.templates import get_templates
+from command.controller.cfg_reader import CfgReader
 from command.model.configuration import CMDCommand
 from utils.case import to_snake_case
 from .az_command_generator import AzCommandGenerator
@@ -140,7 +141,7 @@ class AzProfileGenerator:
         tmpl = get_templates()['aaz']['command']['_cmd.py']
         client = self.profile.get_client(command)
         assert client is not None
-        self._update_managed_identity(command.cfg)
+        # self._update_managed_identity(command.cfg)
         try:
             data = tmpl.render(
                 leaf=AzCommandGenerator(command, client, is_wait=is_wait)
@@ -151,8 +152,12 @@ class AzProfileGenerator:
         self._update_file(
             profile_folder_name, *self._command_group_folder_names(*command.names[:-1]), file_name, data=data)
 
-    def _update_managed_identity(self, command):
-
+    # def _update_managed_identity(self, command):
+    #     parent, arg, arg_idx, arg_var = CfgReader.find_managed_identity_in_command(command)
+    #     if not arg:
+    #         return
+        # cfg_reader = CfgReader(cfg)
+        # cfg_reader.find_managed_identity_in_command()
 
     def _generate_by_clients(self, profile_folder_name, clients):
         generator = AzClientsGenerator(clients)
