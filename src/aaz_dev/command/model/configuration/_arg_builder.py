@@ -148,11 +148,11 @@ class CMDArgBuilder:
 
         return [arg, ]
 
-    def get_managed_identity_flag(self):
-        if self.schema and (isinstance(self.schema, CMDIdentityObjectSchema) or isinstance(self.schema, CMDIdentityObjectSchemaBase)):
-            return True
-
-        return False
+    # def get_managed_identity_flag(self):
+    #     if self.schema and (isinstance(self.schema, CMDIdentityObjectSchema) or isinstance(self.schema, CMDIdentityObjectSchemaBase)):
+    #         return True
+    #
+    #     return False
 
     def get_sub_args(self):
         assert isinstance(self.schema, (CMDObjectSchemaBase, CMDObjectSchemaDiscriminator))
