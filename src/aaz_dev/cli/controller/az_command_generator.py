@@ -47,9 +47,9 @@ class AzCommandGenerator:
                 self.cmd_ctx.support_id_part = False
 
         # add managed identity args
-        parent, arg, arg_idx, arg_var = CfgReader.find_managed_identity_in_command(self.cmd.cfg)
-        if arg:
-            pass
+        # parent, arg, arg_idx, arg_var = CfgReader.find_managed_identity_in_command(self.cmd.cfg)
+        # if arg:
+        #     pass
             # self.arg_groups.append(AzArgGroupGenerator(self.ARGS_SCHEMA_NAME, self.cmd_ctx, arg_group))
 
         if self.cmd.cfg.arg_groups:
