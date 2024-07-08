@@ -783,16 +783,11 @@ class CMDObjectArgBase(CMDArgBase):
 
 
 class CMDObjectArg(CMDObjectArgBase, CMDArg):
-    is_managed_identity = CMDBooleanField(
-        serialized_name='isManagedIdentity',
-        deserialize_from='isManagedIdentity'
-    )
 
     @classmethod
     def build_arg(cls, builder):
         arg = super().build_arg(builder)
         assert isinstance(arg, CMDObjectArg)
-        arg.is_managed_identity = builder.get_managed_identity_flag()
         return arg
 
     def _reformat(self, **kwargs):
@@ -801,6 +796,14 @@ class CMDObjectArg(CMDObjectArgBase, CMDArg):
             if not isinstance(self.default.value, dict) and not (self.nullable and self.default.value is None):
                 raise exceptions.VerificationError(
                     f"Invalid default value", details=f"'{self.default.value}' is not a valid object arg value")
+
+
+class CMDIdentityObjectArg(CMDObjectArg):
+    TYPE_VALUE = 'IdentityObject'
+
+
+class CMDIdentityObjectArgBase(CMDObjectArgBase):
+    TYPE_VALUE = 'IdentityObject'
 
 
 # array

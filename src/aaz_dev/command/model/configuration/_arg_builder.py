@@ -131,10 +131,6 @@ class CMDArgBuilder:
 
         arg = self._build_arg()
 
-        # from command.model.configuration import CMDIdentityObjectSchema, CMDIdentityObjectSchemaBase
-        # if isinstance(self.schema, CMDIdentityObjectSchema):
-        #     arg.is_managed_identity = True
-        # if isinstance(arg.schema, ):
         assert arg is not None
         if self._need_flatten():
             if isinstance(self.schema, CMDSchema):

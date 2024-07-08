@@ -26,7 +26,8 @@ from ._arg import CMDStringArg, CMDStringArgBase, \
     CMDFloat64Arg, CMDFloat64ArgBase, \
     CMDArrayArg, CMDArrayArgBase, \
     CMDObjectArg, CMDObjectArgBase, CMDObjectArgAdditionalProperties, \
-    CMDClsArg, CMDClsArgBase
+    CMDClsArg, CMDClsArgBase, \
+    CMDIdentityObjectArg, CMDIdentityObjectArgBase
 from ._fields import CMDVariantField, StringType, CMDClassField, CMDBooleanField, CMDPrimitiveField, CMDDescriptionField
 from ._format import CMDStringFormat, CMDIntegerFormat, CMDFloatFormat, CMDObjectFormat, CMDArrayFormat, \
     CMDResourceIdFormat
@@ -968,11 +969,11 @@ class CMDIdentityObjectSchemaBase(CMDObjectSchemaBase):
     with "SystemAssigned", "UserAssigned", "SystemAssigned, UserAssigned" and "None" enum values.
     """
     TYPE_VALUE = "IdentityObject"
-    ARG_TYPE = CMDObjectArgBase
+    ARG_TYPE = CMDIdentityObjectArgBase
 
 
 class CMDIdentityObjectSchema(CMDIdentityObjectSchemaBase, CMDObjectSchema):
-    ARG_TYPE = CMDObjectArg
+    ARG_TYPE = CMDIdentityObjectArg
 
 
 # array
