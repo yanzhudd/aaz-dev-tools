@@ -2378,14 +2378,16 @@ const DecodeArgs = (argGroups: any[]): { args: CMDArg[], clsArgDefineMap: ClsArg
     let clsDefineMap: ClsArgDefinitionMap = {};
     const args: CMDArg[] = [];
     argGroups.forEach((argGroup: any) => {
-        args.push(...argGroup.args.map((resArg: any) => {
-            const argDecode = decodeArg(resArg);
-            clsDefineMap = {
-                ...clsDefineMap,
-                ...argDecode.clsDefineMap
-            }
-            return argDecode.arg;
-        }))
+        args.push(...argGroup.args
+            .filter((resArg: any) => resArg.type != 'IdentityObject')
+            .map((resArg: any) => {
+                const argDecode = decodeArg(resArg);
+                clsDefineMap = {
+                    ...clsDefineMap,
+                    ...argDecode.clsDefineMap
+                }
+                return argDecode.arg;
+            }))
     })
     return {
         args: args,
