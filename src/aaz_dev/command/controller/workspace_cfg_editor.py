@@ -1521,7 +1521,9 @@ class WorkspaceCfgEditor(CfgReader, ArgumentUpdateMixin):
         _instance_op.instance_update.json.schema = _instance_op_schema
 
         new_update_op = update_op.__class__(raw_data=update_op.to_native())
-        new_update_op.http.request.body.json.schema = cls.trim_schema_by_idx(new_update_op.http.request.body.json.schema, subresource_idx)
+        if update_op.http.request.method == "patch":
+            # trim schema by idx only for patch type operation
+            new_update_op.http.request.body.json.schema = cls.trim_identity_schema_by_idx(new_update_op.http.request.body.json.schema, subresource_idx)
 
         _sub_command.operations = [
             get_op.__class__(raw_data=get_op.to_native()),
